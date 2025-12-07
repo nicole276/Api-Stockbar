@@ -25,7 +25,29 @@ app.get('/', (req, res) => {
     version: '5.0.0',
     status: 'operacional',
     timestamp: new Date().toISOString(),
-    documentation: 'Todos los endpoints requieren autenticación excepto /api/login'
+    endpoints: {
+      public: {
+        root: 'GET /',
+        login: 'POST /api/login',
+        test: 'GET /api/test'
+      },
+      protected: {
+        ventas: 'GET /api/ventas (requiere token)',
+        clientes: 'GET /api/clientes (requiere token)',
+        productos: 'GET /api/productos (requiere token)',
+        compras: 'GET /api/compras (requiere token)'
+      }
+    }
+  });
+});
+
+// ==================== ENDPOINT DE PRUEBA ====================
+app.get('/api/test', (req, res) => {
+  res.json({
+    success: true,
+    message: '✅ API funcionando correctamente',
+    timestamp: new Date().toISOString(),
+    database: 'Conectada a PostgreSQL'
   });
 });
 
