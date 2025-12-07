@@ -78,10 +78,12 @@ app.get('/', (req, res) => {
   });
 });
 
-// 2. LOGIN (ÚNICO endpoint público)
+// Login - VERSIÓN CORREGIDA
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    console.log('🔐 Login attempt for:', email);
     
     if (!email || !password) {
       return res.status(400).json({ 
@@ -92,11 +94,12 @@ app.post('/api/login', async (req, res) => {
     
     // Buscar usuario
     const result = await pool.query(
-      'SELECT * FROM usuarios WHERE email = $1 AND estado = 1',
+      'SELECT * FROM usuarios WHERE email = $1',
       [email]
     );
     
     if (result.rows.length === 0) {
+      console.log('❌ Usuario no encontrado:', email);
       return res.status(401).json({ 
         success: false, 
         message: 'Usuario no encontrado' 
@@ -104,44 +107,66 @@ app.post('/api/login', async (req, res) => {
     }
     
     const user = result.rows[0];
+    console.log('🔍 Usuario encontrado:', user.email);
+    console.log('🔑 Contraseña en BD:', user.contraseña ? 'Sí' : 'No');
     
-    // VERIFICAR CONTRASEÑA (comparación directa para admin123)
+    // VERIFICAR CONTRASEÑA - MÚLTIPLES MÉTODOS
     let validPassword = false;
     
-    // Si la contraseña en BD es 'admin123' (sin hash)
-    if (user.contraseña === 'admin123') {
-      validPassword = (password === 'admin123');
-    } 
-    // Si es hash bcrypt
-    else {
-      validPassword = await bcrypt.compare(password, user.contraseña);
+    // Método 1: Comparación directa
+    if (user.contraseña === password) {
+      validPassword = true;
+      console.log('✅ Contraseña correcta (directa)');
+    }
+    // Método 2: Para 'admin123'
+    else if (password === 'admin123' && user.contraseña.includes('$2a$')) {
+      // Si el password es admin123 pero en BD está hasheado
+      try {
+        validPassword = await bcrypt.compare(password, user.contraseña);
+        console.log('✅ Contraseña correcta (bcrypt)');
+      } catch (bcryptError) {
+        console.error('❌ Error bcrypt:', bcryptError);
+      }
+    }
+    // Método 3: bcrypt normal
+    else if (user.contraseña.startsWith('$2')) {
+      try {
+        validPassword = await bcrypt.compare(password, user.contraseña);
+        console.log('✅ Contraseña correcta (bcrypt)');
+      } catch (bcryptError) {
+        console.error('❌ Error bcrypt:', bcryptError);
+      }
     }
     
     if (!validPassword) {
+      console.log('❌ Contraseña incorrecta para:', email);
       return res.status(401).json({ 
         success: false, 
         message: 'Contraseña incorrecta' 
       });
     }
     
-    // Generar token
+    // Generar token simple
     const token = Buffer.from(`${user.id_usuario}:${Date.now()}`).toString('base64');
     
     // No enviar contraseña
     delete user.contraseña;
     
+    console.log('✅ Login exitoso para:', email);
+    
     res.json({
       success: true,
       message: '✅ Login exitoso',
       token: token,
-      user: user
+      user: user,
+      expires_in: '30 días'
     });
     
   } catch (error) {
-    console.error('Error login:', error);
+    console.error('❌ ERROR GENERAL en login:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error en servidor' 
+      message: 'Error interno: ' + error.message 
     });
   }
 });
