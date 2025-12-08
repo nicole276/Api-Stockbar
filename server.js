@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
@@ -18,24 +17,6 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
-
-// ==================== CONFIGURACIÓN DE EMAIL ====================
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'thebar752@gmail.com',
-    pass: 'sfqj taqe yrmr zfhj'
-  }
-});
-
-// Verificar conexión SMTP
-transporter.verify(function(error, success) {
-  if (error) {
-    console.error('❌ Error SMTP:', error.message);
-  } else {
-    console.log('✅ Servidor SMTP configurado correctamente');
-  }
-});
 
 // ==================== MIDDLEWARE DE LOGS ====================
 app.use((req, res, next) => {
@@ -173,12 +154,12 @@ app.post('/api/verify-email', async (req, res) => {
   }
 });
 
-// ENVIAR EMAIL DE RECUPERACIÓN
+// ENVIAR EMAIL DE RECUPERACIÓN (SIMULADO)
 app.post('/api/send-recovery-email', async (req, res) => {
   try {
     const { email, codigo } = req.body;
     
-    console.log('📧 Enviando recuperación:', { email, codigo });
+    console.log('📧 Simulando envío de recuperación:', { email, codigo });
     
     if (!email || !codigo) {
       return res.status(400).json({ 
@@ -199,67 +180,14 @@ app.post('/api/send-recovery-email', async (req, res) => {
       });
     }
     
-    const nombreUsuario = userResult.rows[0].nombre_completo || 'Usuario';
-    
-    const mailOptions = {
-      from: '"THE BAR Sistema" <thebar752@gmail.com>',
-      to: email,
-      subject: '🔐 Código de recuperación - THE BAR',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5efe6;">
-          <div style="background-color: #3b2e2a; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="margin: 0; color: #d99a00;">THE BAR</h1>
-            <p style="margin: 5px 0 0;">Sistema de Gestión</p>
-          </div>
-          
-          <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px;">
-            <h2>Recuperación de Contraseña</h2>
-            <p>Hola <strong>${nombreUsuario}</strong>,</p>
-            <p>Has solicitado restablecer tu contraseña en <strong>THE BAR Sistema</strong>.</p>
-            
-            <div style="background-color: #f8f9fa; border: 2px dashed #d99a00; padding: 20px; text-align: center; margin: 25px 0; border-radius: 8px;">
-              <p style="margin-bottom: 10px; color: #666;">Tu código de verificación es:</p>
-              <div style="font-size: 36px; font-weight: bold; letter-spacing: 5px; color: #3b2e2a; margin: 15px 0;">
-                ${codigo}
-              </div>
-              <div style="background-color: #d86633; color: white; padding: 8px 15px; border-radius: 20px; display: inline-block; font-weight: bold;">
-                ⏰ Válido por 30 segundos
-              </div>
-            </div>
-            
-            <p>Ingresa este código en la aplicación para continuar con la recuperación de tu contraseña.</p>
-            
-            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 4px;">
-              <p style="margin: 0; color: #856404;">
-                <strong>⚠️ Importante:</strong> Si no solicitaste este cambio, ignora este mensaje. Tu contraseña actual permanecerá sin cambios.
-              </p>
-            </div>
-            
-            <p style="margin-top: 25px;">
-              Saludos,<br>
-              <strong>Equipo de Soporte - THE BAR</strong>
-            </p>
-          </div>
-          
-          <div style="background-color: #0f1a24; color: white; text-align: center; padding: 15px; margin-top: 20px; border-radius: 10px; font-size: 12px;">
-            <p style="margin: 0;">© ${new Date().getFullYear()} THE BAR Sistema. Todos los derechos reservados.</p>
-            <p style="margin: 5px 0 0;">Este es un mensaje automático, no responda.</p>
-          </div>
-        </div>
-      `,
-      text: `Código de recuperación THE BAR\n\nHola ${nombreUsuario},\n\nTu código de verificación es: ${codigo}\n\nEste código expira en 30 segundos.\n\nSi no solicitaste este cambio, ignora este mensaje.\n\nSaludos,\nEquipo THE BAR`
-    };
-    
-    const info = await transporter.sendMail(mailOptions);
-    
-    console.log('✅ Email enviado correctamente:', info.messageId);
+    console.log(`✅ Código generado para ${email}: ${codigo}`);
     
     res.json({
       success: true,
-      message: '✅ Código enviado exitosamente',
+      message: '✅ Código generado exitosamente (servicio de email no configurado)',
       data: {
         email: email,
-        codigo_enviado: true,
+        codigo: codigo,
         timestamp: new Date().toISOString(),
         expira_en: '30 segundos'
       }
@@ -267,28 +195,19 @@ app.post('/api/send-recovery-email', async (req, res) => {
     
   } catch (error) {
     console.error('💥 ERROR send-recovery-email:', error.message);
-    
-    let errorMessage = 'Error al enviar el email';
-    if (error.code === 'EAUTH') {
-      errorMessage = 'Error de autenticación con Gmail. Verifica las credenciales.';
-    } else if (error.code === 'EENVELOPE') {
-      errorMessage = 'Dirección de email no válida.';
-    }
-    
     res.status(500).json({ 
       success: false, 
-      message: errorMessage,
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: 'Error del servidor'
     });
   }
 });
 
-// ENVIAR EMAIL DE CONFIRMACIÓN
+// ENVIAR EMAIL DE CONFIRMACIÓN (SIMULADO)
 app.post('/api/send-confirmation-email', async (req, res) => {
   try {
     const { email } = req.body;
     
-    console.log('📧 Enviando confirmación a:', email);
+    console.log('📧 Simulando envío de confirmación a:', email);
     
     if (!email) {
       return res.status(400).json({ 
@@ -309,36 +228,11 @@ app.post('/api/send-confirmation-email', async (req, res) => {
       });
     }
     
-    const nombreUsuario = userResult.rows[0].nombre_completo || 'Usuario';
-    
-    const mailOptions = {
-      from: '"THE BAR Sistema" <thebar752@gmail.com>',
-      to: email,
-      subject: '✅ Contraseña actualizada - THE BAR',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background-color: #2e7d32; color: white; padding: 20px; text-align: center;">
-            <h1 style="margin: 0;">✅ Contraseña Actualizada</h1>
-          </div>
-          <div style="padding: 30px; background-color: #f5efe6;">
-            <p>Hola <strong>${nombreUsuario}</strong>,</p>
-            <p>Tu contraseña en <strong>THE BAR Sistema</strong> ha sido cambiada exitosamente.</p>
-            <p>Ahora puedes iniciar sesión con tu nueva contraseña.</p>
-            <p style="color: #666; font-size: 12px; margin-top: 30px;">
-              Fecha: ${new Date().toLocaleString('es-ES')}
-            </p>
-          </div>
-        </div>
-      `
-    };
-    
-    await transporter.sendMail(mailOptions);
-    
-    console.log('✅ Email de confirmación enviado');
+    console.log(`✅ Confirmación simulada para: ${email}`);
     
     res.json({
       success: true,
-      message: '✅ Email de confirmación enviado',
+      message: '✅ Confirmación simulada (servicio de email no configurado)',
       data: { email: email, confirmado: true }
     });
     
@@ -346,7 +240,7 @@ app.post('/api/send-confirmation-email', async (req, res) => {
     console.error('💥 ERROR send-confirmation:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error al enviar confirmación' 
+      message: 'Error del servidor' 
     });
   }
 });
@@ -2055,7 +1949,6 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('✅ TODOS LOS MÓDULOS ACTIVADOS');
   console.log('✅ CRUD COMPLETO IMPLEMENTADO');
   console.log('✅ BASE DE DATOS CONECTADA');
-  console.log('✅ EMAIL CONFIGURADO (GMAIL)');
   console.log('='.repeat(70));
   console.log(`📡 Puerto: ${PORT}`);
   console.log(`🌐 URL: http://localhost:${PORT}`);
@@ -2072,9 +1965,8 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('   POST /api/compras            - Crear compra');
   console.log('   GET  /api/ventas             - Listar ventas');
   console.log('   POST /api/ventas             - Crear venta');
-  console.log('   POST /api/send-recovery-email - Recuperar contraseña');
+  console.log('   POST /api/send-recovery-email - Recuperar contraseña (simulado)');
   console.log('='.repeat(70));
-  console.log('📧 Email configurado: thebar752@gmail.com');
   console.log('🔐 Login por defecto: thebar752@gmail.com | admin123');
   console.log('='.repeat(70));
   console.log('✅ Servidor listo para recibir peticiones!');
