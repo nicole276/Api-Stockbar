@@ -30,6 +30,9 @@ app.get('/', (req, res) => {
       public: {
         root: 'GET /',
         login: 'POST /api/login',
+        'verify-email': 'POST /api/verify-email',
+        'send-recovery-code': 'POST /api/send-recovery-code',
+        'update-password': 'POST /api/update-password',
         test: 'GET /api/test',
         'check-db': 'GET /api/check-db'
       },
@@ -87,6 +90,157 @@ const authenticateToken = async (req, res, next) => {
     });
   }
 };
+
+// ==================== VERIFICAR EMAIL (RECUPERACIÓN) ====================
+app.post('/api/verify-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    console.log('🔍 Verificando email:', email);
+    
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        exists: false,
+        message: 'Email requerido' 
+      });
+    }
+    
+    // Buscar usuario por email
+    const result = await pool.query(
+      'SELECT id_usuario, email FROM usuarios WHERE email = $1',
+      [email]
+    );
+    
+    if (result.rows.length === 0) {
+      console.log('❌ Email no encontrado:', email);
+      return res.json({
+        success: true,
+        exists: false,
+        message: 'Email no registrado'
+      });
+    }
+    
+    console.log('✅ Email encontrado:', result.rows[0].email);
+    
+    res.json({
+      success: true,
+      exists: true,
+      message: 'Email registrado en el sistema',
+      data: {
+        id_usuario: result.rows[0].id_usuario,
+        email: result.rows[0].email
+      }
+    });
+    
+  } catch (error) {
+    console.error('💥 ERROR en verify-email:', error);
+    res.status(500).json({ 
+      success: false, 
+      exists: false,
+      message: 'Error del servidor' 
+    });
+  }
+});
+
+// ==================== GENERAR CÓDIGO DE RECUPERACIÓN ====================
+app.post('/api/generate-recovery-code', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email requerido' 
+      });
+    }
+    
+    // Generar código de 6 dígitos
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    console.log(`🔐 Código generado para ${email}: ${codigo}`);
+    
+    // Guardar código en la base de datos (podrías usar una tabla temporal)
+    // Por ahora solo lo devolvemos
+    res.json({
+      success: true,
+      codigo: codigo,
+      message: 'Código generado exitosamente',
+      expires_in: '10 minutos'
+    });
+    
+  } catch (error) {
+    console.error('💥 ERROR en generate-recovery-code:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error del servidor' 
+    });
+  }
+});
+
+// ==================== ACTUALIZAR CONTRASEÑA ====================
+app.post('/api/update-password', async (req, res) => {
+  try {
+    const { email, nuevaPassword } = req.body;
+    
+    console.log('🔄 Actualizando contraseña para:', email);
+    
+    if (!email || !nuevaPassword) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email y nueva contraseña requeridos' 
+      });
+    }
+    
+    if (nuevaPassword.length < 6) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'La contraseña debe tener al menos 6 caracteres' 
+      });
+    }
+    
+    // Verificar que el usuario existe
+    const userResult = await pool.query(
+      'SELECT id_usuario FROM usuarios WHERE email = $1',
+      [email]
+    );
+    
+    if (userResult.rows.length === 0) {
+      console.log('❌ Usuario no encontrado:', email);
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Usuario no encontrado' 
+      });
+    }
+    
+    // Encriptar la nueva contraseña
+    const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
+    
+    // Actualizar la contraseña
+    await pool.query(
+      'UPDATE usuarios SET contraseña = $1 WHERE email = $2',
+      [hashedPassword, email]
+    );
+    
+    console.log('✅ Contraseña actualizada para:', email);
+    
+    res.json({
+      success: true,
+      message: '✅ Contraseña actualizada exitosamente',
+      data: {
+        email: email,
+        updated_at: new Date().toISOString()
+      }
+    });
+    
+  } catch (error) {
+    console.error('💥 ERROR en update-password:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error del servidor' 
+    });
+  }
+});
 
 // ==================== LOGIN - ENDPOINT PÚBLICO ====================
 app.post('/api/login', async (req, res) => {
@@ -737,12 +891,21 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('✅ Endpoints públicos:');
   console.log('   GET  /               - Raíz de la API');
   console.log('   POST /api/login      - Autenticación');
+  console.log('   POST /api/verify-email - Verificar email');
+  console.log('   POST /api/generate-recovery-code - Generar código');
+  console.log('   POST /api/update-password - Actualizar contraseña');
   console.log('   GET  /api/test       - Prueba de conexión');
   console.log('   GET  /api/check-db   - Verificar base de datos');
   console.log('='.repeat(70));
   console.log('🔐 Credenciales por defecto:');
   console.log('   Email: thebar752@gmail.com');
   console.log('   Password: admin123');
+  console.log('='.repeat(70));
+  console.log('🔧 Funcionalidades de recuperación de contraseña:');
+  console.log('   1. Verificar email del usuario');
+  console.log('   2. Generar código de 6 dígitos');
+  console.log('   3. Validar código en la app');
+  console.log('   4. Actualizar contraseña encriptada');
   console.log('='.repeat(70));
   console.log('✅ Servidor listo!');
   console.log('='.repeat(70));
