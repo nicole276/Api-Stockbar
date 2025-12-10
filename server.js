@@ -220,9 +220,9 @@ app.post('/api/send-recovery-email', async (req, res) => {
   }
 });
 
-// ACTUALIZAR CONTRASEÑA (CON COMILLAS)
+// ACTUALIZAR CONTRASEÑA (VERSIÓN CORREGIDA - SIN Ñ)
 app.post('/api/update-password', async (req, res) => {
-  console.log('🔐 UPDATE-PASSWORD CON COMILLAS');
+  console.log('🔐 UPDATE-PASSWORD - VERSIÓN CORREGIDA');
   
   try {
     const { email, nuevaPassword } = req.body;
@@ -260,9 +260,9 @@ app.post('/api/update-password', async (req, res) => {
     // Hashear
     const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
     
-    // ⭐⭐ USAR COMILLAS DOBLES alrededor de "contraseña" ⭐⭐
+    // ✅ CORREGIDO: usar contrasena (sin ñ, sin comillas)
     const updateResult = await pool.query(
-      'UPDATE usuarios SET "contraseña" = $1 WHERE email = $2',
+      'UPDATE usuarios SET contrasena = $1 WHERE email = $2',
       [hashedPassword, email]
     );
     
@@ -290,7 +290,7 @@ app.post('/api/update-password', async (req, res) => {
   }
 });
 
-// LOGIN (VERSIÓN CORREGIDA)
+// LOGIN (VERSIÓN CORREGIDA - SIN Ñ)
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -302,9 +302,9 @@ app.post('/api/login', async (req, res) => {
       });
     }
     
-    // ⭐⭐ USAR COMILLAS en el SELECT ⭐⭐
+    // ✅ CORREGIDO: usar contrasena (sin ñ, sin comillas)
     const result = await pool.query(
-      'SELECT id_usuario, email, nombre_completo, usuario, estado, id_rol, "contraseña" as contraseña FROM usuarios WHERE email = $1',
+      'SELECT id_usuario, email, nombre_completo, usuario, estado, id_rol, contrasena FROM usuarios WHERE email = $1',
       [email]
     );
     
@@ -316,7 +316,7 @@ app.post('/api/login', async (req, res) => {
     }
     
     const user = result.rows[0];
-    const dbPassword = user.contraseña || '';
+    const dbPassword = user.contrasena || ''; // ✅ Cambiado aquí también
     
     console.log('🔐 Login - Password en BD:', dbPassword ? 'PRESENTE' : 'VACÍO');
     console.log('🔐 Login - Password recibida:', password);
@@ -373,6 +373,7 @@ app.post('/api/login', async (req, res) => {
     });
   }
 });
+
 // ==================== MÓDULO: ROLES ====================
 
 // LISTAR ROLES
@@ -721,7 +722,7 @@ app.get('/api/usuarios/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// CREAR USUARIO (CORREGIDO)
+// CREAR USUARIO (CORREGIDO - SIN Ñ)
 app.post('/api/usuarios', authenticateToken, async (req, res) => {
   try {
     const { id_rol, nombre_completo, email, usuario, contraseña, estado = 1 } = req.body;
@@ -772,9 +773,9 @@ app.post('/api/usuarios', authenticateToken, async (req, res) => {
     
     const hashedPassword = await bcrypt.hash(contraseña, 10);
     
-    // ⭐⭐ USAR COMILLAS en contraseña ⭐⭐
+    // ✅ CORREGIDO: usar contrasena (sin ñ, sin comillas)
     const result = await pool.query(
-      `INSERT INTO usuarios (id_rol, nombre_completo, email, usuario, "contraseña", estado) 
+      `INSERT INTO usuarios (id_rol, nombre_completo, email, usuario, contrasena, estado) 
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [id_rol, nombre_completo, email, usuario, hashedPassword, estado]
     );
@@ -799,7 +800,7 @@ app.post('/api/usuarios', authenticateToken, async (req, res) => {
   }
 });
 
-// ACTUALIZAR USUARIO (CORREGIDO)
+// ACTUALIZAR USUARIO (CORREGIDO - SIN Ñ)
 app.put('/api/usuarios/:id', authenticateToken, validateNotAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -837,8 +838,8 @@ app.put('/api/usuarios/:id', authenticateToken, validateNotAdmin, async (req, re
     if (contraseña) {
       console.log('🔐 Actualizando contraseña para usuario:', id);
       const hashedPassword = await bcrypt.hash(contraseña, 10);
-      // ⭐⭐ USAR COMILLAS en contraseña ⭐⭐
-      updateQuery += ', "contraseña" = $6';
+      // ✅ CORREGIDO: usar contrasena (sin ñ, sin comillas)
+      updateQuery += ', contrasena = $6';
       queryParams.splice(5, 0, hashedPassword);
     }
     
