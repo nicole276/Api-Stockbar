@@ -290,11 +290,7 @@ app.post('/api/update-password', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // LOGIN (VERSIÓN COMPLETAMENTE CORREGIDA)
-=======
-// LOGIN (VERSIÓN CORREGIDA - SIN Ñ)
->>>>>>> 4e5cd67cd7719eeaf78ec2818b0a228f4c60e4c5
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -306,14 +302,10 @@ app.post('/api/login', async (req, res) => {
       });
     }
     
-<<<<<<< HEAD
     console.log('🔐 Login - Email recibido:', email);
     console.log('🔐 Login - Password recibida:', password);
     
     // Buscar usuario
-=======
-    // ✅ CORREGIDO: usar contrasena (sin ñ, sin comillas)
->>>>>>> 4e5cd67cd7719eeaf78ec2818b0a228f4c60e4c5
     const result = await pool.query(
       'SELECT id_usuario, email, nombre_completo, usuario, estado, id_rol, contrasena FROM usuarios WHERE email = $1',
       [email]
@@ -328,7 +320,6 @@ app.post('/api/login', async (req, res) => {
     }
     
     const user = result.rows[0];
-<<<<<<< HEAD
     const dbPassword = user.contrasena || '';
     
     console.log('🔐 Login - Password en BD:', dbPassword);
@@ -357,48 +348,20 @@ app.post('/api/login', async (req, res) => {
     // TERCERO: Si coincide directamente
     else if (!validPassword && dbPassword === password) {
       console.log('✅ Password coincide directamente');
-=======
-    const dbPassword = user.contrasena || ''; // ✅ Cambiado aquí también
-    
-    console.log('🔐 Login - Password en BD:', dbPassword ? 'PRESENTE' : 'VACÍO');
-    console.log('🔐 Login - Password recibida:', password);
-    
-    let validPassword = false;
-    
-    // Verificación de password
-    if (dbPassword === password) {
       validPassword = true;
-      console.log('✅ Password coincide directamente');
-    }
-    else if (dbPassword.startsWith('$2')) {
-      // Es hash bcrypt
-      validPassword = await bcrypt.compare(password, dbPassword);
-      console.log('✅ Comparación bcrypt:', validPassword);
-    }
-    else if (password === 'admin123') {
->>>>>>> 4e5cd67cd7719eeaf78ec2818b0a228f4c60e4c5
-      validPassword = true;
-      console.log('✅ Password admin por defecto');
     }
     
     if (!validPassword) {
-<<<<<<< HEAD
       console.log('❌ Password inválida. Hash en BD:', dbPassword);
       console.log('❌ Password recibida:', password);
       console.log('❌ ¿Es admin123?', password === 'admin123');
-=======
-      console.log('❌ Password inválida');
->>>>>>> 4e5cd67cd7719eeaf78ec2818b0a228f4c60e4c5
       return res.status(401).json({ 
         success: false, 
         message: 'Contraseña incorrecta' 
       });
     }
     
-<<<<<<< HEAD
     // Generar token
-=======
->>>>>>> 4e5cd67cd7719eeaf78ec2818b0a228f4c60e4c5
     const token = Buffer.from(`${user.id_usuario}:${Date.now()}`).toString('base64');
     
     const userResponse = {
@@ -410,12 +373,9 @@ app.post('/api/login', async (req, res) => {
       id_rol: user.id_rol || 1
     };
     
-<<<<<<< HEAD
     console.log('✅ Login exitoso para:', user.email);
     console.log('✅ Token generado:', token.substring(0, 20) + '...');
     
-=======
->>>>>>> 4e5cd67cd7719eeaf78ec2818b0a228f4c60e4c5
     res.json({
       success: true,
       message: 'Login exitoso',
@@ -425,11 +385,7 @@ app.post('/api/login', async (req, res) => {
     });
     
   } catch (error) {
-<<<<<<< HEAD
     console.error('❌ ERROR login:', error);
-=======
-    console.error('ERROR login:', error);
->>>>>>> 4e5cd67cd7719eeaf78ec2818b0a228f4c60e4c5
     res.status(500).json({ 
       success: false, 
       message: 'Error del servidor en el proceso de login' 
