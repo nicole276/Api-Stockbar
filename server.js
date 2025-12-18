@@ -6,9 +6,9 @@ require('dotenv').config();
 
 const app = express();
 
-// ✅ CONEXIÓN A LA BASE DE DATOS - VERSIÓN CORREGIDA
+// ✅ CONEXIÓN A LA BASE DE DATOS
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_SpX8GMWUAK3i@ep-bitter-violet-adtn9x61-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
   ssl: { rejectUnauthorized: false }
 });
 
