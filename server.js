@@ -8,7 +8,7 @@ const app = express();
 
 // ✅ CONEXIÓN A LA BASE DE DATOS
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://stockbar_user:0EndlOqYMUMDsuYAlnjyQ35Vzs3rFh1V@dpg-d4dmar9r0fns73eplq4g-a/stockbar_db',
+  connectionString: process.env.DATABASE_URL || 'psql 'postgresql://neondb_owner:npg_SpX8GMWUAK3i@ep-bitter-violet-adtn9x61-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'',
   ssl: { rejectUnauthorized: false }
 });
 
