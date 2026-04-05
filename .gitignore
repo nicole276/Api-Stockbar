@@ -1,0 +1,23 @@
+# Dependencias de Node.js
+node_modules/
+
+# Variables de entorno (contraseñas, API keys)
+.env
+.env.local
+.env.production
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de log
+*.log
+npm-debug.log*
+
+# Archivos temporales
+.tmp
+.temp
+
+# Archivos de IDE
+.vscode/
+.idea/
