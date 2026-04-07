@@ -1,9 +1,16 @@
 // ============================================================
+<<<<<<< HEAD
 //  THE BAR - API SERVER  v12.0
 //  Base de datos: Neon PostgreSQL
 //  Autor: generado con Claude
 // ============================================================
 
+=======
+//  THE BAR - API SERVER  v12.0  (FIX: unidades_por_paquete en compras)
+//  Base de datos: Neon PostgreSQL
+//  Autor: generado con Claude
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 const express    = require('express');
 const cors       = require('cors');
 const { Pool }   = require('pg');
@@ -13,10 +20,21 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 // ── Variables de entorno ─────────────────────────────────────
+<<<<<<< HEAD
 const app  = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'the-bar-super-secret-key-2026';
 
+=======
+console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'cargado' : 'NO cargado');
+console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'cargado' : 'NO cargado');
+console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'cargado' : 'NO cargado');
+
+// ── App y DB ─────────────────────────────────────────────────
+const app  = express();
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'the-bar-super-secret-key-2026';
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -34,12 +52,21 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS
   }
 });
+<<<<<<< HEAD
 
 transporter.verify((error) => {
   if (error) console.error('Error en email:', error.message);
 });
 
 // ── Crear tablas si no existen ────────────────────────────────
+=======
+transporter.verify((error) => {
+  if (error) console.log('Error en email:', error.message);
+  else       console.log('Email configurado correctamente');
+});
+
+// ── Crear tabla password_resets si no existe ──────────────────
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 pool.query(`
   CREATE TABLE IF NOT EXISTS password_resets (
     id         SERIAL PRIMARY KEY,
@@ -50,14 +77,24 @@ pool.query(`
   )
 `).catch(e => console.error('Error creando tabla password_resets:', e.message));
 
+<<<<<<< HEAD
+=======
+// ── Agregar columna unidades_por_paquete si no existe ─────────
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 pool.query(`
   ALTER TABLE productos ADD COLUMN IF NOT EXISTS unidades_por_paquete INT DEFAULT 1
 `).catch(e => console.error('Error agregando columna unidades_por_paquete:', e.message));
 
+<<<<<<< HEAD
 // ════════════════════════════════════════════════════════════
 //  MIDDLEWARES DE AUTH Y PERMISOS
 // ════════════════════════════════════════════════════════════
 
+=======
+// ============================================================
+//  MIDDLEWARES DE AUTH Y PERMISOS
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 const authenticateJWT = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
@@ -78,7 +115,11 @@ const authenticateJWT = async (req, res, next) => {
   } catch (error) {
     if (error.name === 'TokenExpiredError')  return res.status(401).json({ success: false, message: 'Token expirado' });
     if (error.name === 'JsonWebTokenError') return res.status(401).json({ success: false, message: 'Token inválido' });
+<<<<<<< HEAD
     console.error('Error autenticación:', error.message);
+=======
+    console.error('Error autenticación:', error);
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error en autenticación' });
   }
 };
@@ -101,22 +142,38 @@ const checkModuleAccess = (moduleName) => async (req, res, next) => {
     }
     next();
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error permisos:', error.message);
+=======
+    console.error('Error permisos:', error);
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error al verificar permisos' });
   }
 };
 
+<<<<<<< HEAD
 // ════════════════════════════════════════════════════════════
 //  RAÍZ
 // ════════════════════════════════════════════════════════════
+=======
+// ============================================================
+//  RAÍZ
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/', (_req, res) => {
   res.json({ success: true, message: 'API THE BAR v12.0', version: '12.0.0' });
 });
 
+<<<<<<< HEAD
 // ════════════════════════════════════════════════════════════
 //  AUTH: LOGIN Y RECUPERACIÓN
 // ════════════════════════════════════════════════════════════
 
+=======
+// ============================================================
+//  AUTH: LOGIN
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -177,12 +234,22 @@ app.post('/api/login', async (req, res) => {
       permissions
     });
   } catch (error) {
+<<<<<<< HEAD
     console.error('ERROR login:', error.message);
+=======
+    console.error('ERROR login:', error);
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error en el servidor' });
   }
 });
 
+<<<<<<< HEAD
 // ── Recuperar contraseña ─────────────────────────────────────
+=======
+// ============================================================
+//  AUTH: RECUPERAR CONTRASEÑA
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -237,8 +304,13 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     await transporter.sendMail(mailOptions);
     res.json({ success: true, message: 'Código enviado a tu correo' });
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error forgot-password:', error.message);
     res.status(500).json({ success: false, message: 'Error al enviar el código' });
+=======
+    console.error('Error forgot-password:', error);
+    res.status(500).json({ success: false, message: 'Error al enviar el código', debug: error.message });
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
   }
 });
 
@@ -259,7 +331,11 @@ app.post('/api/auth/verify-code', async (req, res) => {
     }
     res.json({ success: true, message: 'Código válido' });
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error verify-code:', error.message);
+=======
+    console.error('Error verify-code:', error);
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error al verificar código' });
   }
 });
@@ -294,14 +370,24 @@ app.post('/api/auth/reset-password', async (req, res) => {
     await pool.query('UPDATE password_resets SET used = TRUE WHERE LOWER(email) = $1', [cleanEmail]);
     res.json({ success: true, message: 'Contraseña actualizada exitosamente' });
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error reset-password:', error.message);
+=======
+    console.error('Error reset-password:', error);
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error al cambiar contraseña' });
   }
 });
 
+<<<<<<< HEAD
 // ════════════════════════════════════════════════════════════
 //  MENÚ DINÁMICO
 // ════════════════════════════════════════════════════════════
+=======
+// ============================================================
+//  MENÚ DINÁMICO
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/user/menu', authenticateJWT, async (req, res) => {
   try {
     let rows;
@@ -320,15 +406,25 @@ app.get('/api/user/menu', authenticateJWT, async (req, res) => {
     }
     res.json({ success: true, data: rows });
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error menú:', error.message);
+=======
+    console.error('Error menú:', error);
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error obteniendo menú' });
   }
 });
 
+<<<<<<< HEAD
 // ════════════════════════════════════════════════════════════
 //  ROLES
 // ════════════════════════════════════════════════════════════
 
+=======
+// ============================================================
+//  ROLES
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/roles', authenticateJWT, checkModuleAccess('ROLES'), async (req, res) => {
   try {
     const { search, estado } = req.query;
@@ -340,7 +436,10 @@ app.get('/api/roles', authenticateJWT, checkModuleAccess('ROLES'), async (req, r
     const result = await pool.query(query, params);
     res.json({ success: true, count: result.rowCount, data: result.rows });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error listando roles:', e.message);
+=======
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error listando roles' });
   }
 });
@@ -358,7 +457,10 @@ app.get('/api/roles/:id', authenticateJWT, checkModuleAccess('ROLES'), async (re
     `, [id]);
     res.json({ success: true, data: { ...rol.rows[0], permisos: permisos.rows } });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error obteniendo rol:', e.message);
+=======
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error obteniendo rol' });
   }
 });
@@ -405,7 +507,10 @@ app.put('/api/roles/:id', authenticateJWT, checkModuleAccess('ROLES'), async (re
     }
     res.json({ success: true, message: 'Rol actualizado', data: result.rows[0] });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error actualizando rol:', e.message);
+=======
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error actualizando rol' });
   }
 });
@@ -425,7 +530,10 @@ app.patch('/api/roles/:id/estado', authenticateJWT, checkModuleAccess('ROLES'), 
     if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Rol no encontrado' });
     res.json({ success: true, message: `Rol ${estado == 1 ? 'activado' : 'desactivado'} exitosamente`, data: result.rows[0] });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error cambiando estado de rol:', e.message);
+=======
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error cambiando estado de rol' });
   }
 });
@@ -443,15 +551,24 @@ app.delete('/api/roles/:id', authenticateJWT, checkModuleAccess('ROLES'), async 
     if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Rol no encontrado' });
     res.json({ success: true, message: 'Rol eliminado exitosamente' });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error eliminando rol:', e.message);
+=======
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error eliminando rol' });
   }
 });
 
+<<<<<<< HEAD
 // ════════════════════════════════════════════════════════════
 //  USUARIOS
 // ════════════════════════════════════════════════════════════
 
+=======
+// ============================================================
+//  USUARIOS
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/usuarios', authenticateJWT, checkModuleAccess('USUARIOS'), async (req, res) => {
   try {
     const { search, estado, id_rol } = req.query;
@@ -472,7 +589,10 @@ app.get('/api/usuarios', authenticateJWT, checkModuleAccess('USUARIOS'), async (
     const result = await pool.query(query, params);
     res.json({ success: true, count: result.rowCount, data: result.rows });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error listando usuarios:', e.message);
+=======
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error listando usuarios' });
   }
 });
@@ -486,7 +606,10 @@ app.get('/api/usuarios/:id', authenticateJWT, checkModuleAccess('USUARIOS'), asy
     if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
     res.json({ success: true, data: result.rows[0] });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error obteniendo usuario:', e.message);
+=======
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error obteniendo usuario' });
   }
 });
@@ -552,7 +675,10 @@ app.put('/api/usuarios/:id', authenticateJWT, checkModuleAccess('USUARIOS'), asy
     if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
     res.json({ success: true, message: 'Usuario actualizado exitosamente', data: result.rows[0] });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error actualizando usuario:', e.message);
+=======
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error actualizando usuario' });
   }
 });
@@ -566,7 +692,10 @@ app.patch('/api/usuarios/:id/estado', authenticateJWT, checkModuleAccess('USUARI
     if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
     res.json({ success: true, message: `Usuario ${estado == 1 ? 'activado' : 'desactivado'}`, data: result.rows[0] });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error cambiando estado de usuario:', e.message);
+=======
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error cambiando estado de usuario' });
   }
 });
@@ -580,15 +709,24 @@ app.delete('/api/usuarios/:id', authenticateJWT, checkModuleAccess('USUARIOS'), 
     if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
     res.json({ success: true, message: 'Usuario eliminado exitosamente' });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error eliminando usuario:', e.message);
+=======
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error eliminando usuario' });
   }
 });
 
+<<<<<<< HEAD
 // ════════════════════════════════════════════════════════════
 //  CATEGORÍAS
 // ════════════════════════════════════════════════════════════
 
+=======
+// ============================================================
+//  CATEGORÍAS
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/categorias', authenticateJWT, checkModuleAccess('CATEGORIAS'), async (req, res) => {
   try {
     const { search, estado } = req.query;
@@ -599,11 +737,15 @@ app.get('/api/categorias', authenticateJWT, checkModuleAccess('CATEGORIAS'), asy
     query += ' ORDER BY id_categoria DESC';
     const result = await pool.query(query, params);
     res.json({ success: true, count: result.rowCount, data: result.rows });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error listando categorías:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error listando categorías';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error listando categorías'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.get('/api/categorias/:id', authenticateJWT, checkModuleAccess('CATEGORIAS'), async (req, res) => {
@@ -611,11 +753,15 @@ app.get('/api/categorias/:id', authenticateJWT, checkModuleAccess('CATEGORIAS'),
     const r = await pool.query('SELECT * FROM categorias WHERE id_categoria=$1', [req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
     res.json({ success: true, data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error obteniendo categoría:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo categoría';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo categoría'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.post('/api/categorias', authenticateJWT, checkModuleAccess('CATEGORIAS'), async (req, res) => {
@@ -627,11 +773,15 @@ app.post('/api/categorias', authenticateJWT, checkModuleAccess('CATEGORIAS'), as
       [nombre, descripcion, estado]
     );
     res.status(201).json({ success: true, message: 'Categoría creada', data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error creando categoría:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error creando categoría';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error creando categoría'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.put('/api/categorias/:id', authenticateJWT, checkModuleAccess('CATEGORIAS'), async (req, res) => {
@@ -643,11 +793,15 @@ app.put('/api/categorias/:id', authenticateJWT, checkModuleAccess('CATEGORIAS'),
     );
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
     res.json({ success: true, message: 'Categoría actualizada', data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error actualizando categoría:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error actualizando categoría';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error actualizando categoría'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.patch('/api/categorias/:id/estado', authenticateJWT, checkModuleAccess('CATEGORIAS'), async (req, res) => {
@@ -662,11 +816,15 @@ app.patch('/api/categorias/:id/estado', authenticateJWT, checkModuleAccess('CATE
     const r = await pool.query('UPDATE categorias SET estado=$1 WHERE id_categoria=$2 RETURNING *', [estado, req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
     res.json({ success: true, message: `Categoría ${estado == 1 ? 'activada' : 'desactivada'}`, data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error cambiando estado de categoría:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error cambiando estado';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error cambiando estado'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.delete('/api/categorias/:id', authenticateJWT, checkModuleAccess('CATEGORIAS'), async (req, res) => {
@@ -678,6 +836,7 @@ app.delete('/api/categorias/:id', authenticateJWT, checkModuleAccess('CATEGORIAS
     const r = await pool.query('DELETE FROM categorias WHERE id_categoria=$1 RETURNING *', [req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Categoría no encontrada' });
     res.json({ success: true, message: 'Categoría eliminada' });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error eliminando categoría:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error eliminando categoría';
@@ -689,6 +848,14 @@ app.delete('/api/categorias/:id', authenticateJWT, checkModuleAccess('CATEGORIAS
 //  📦 PRODUCTOS 
 // ════════════════════════════════════════════════════════════
 
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error eliminando categoría'; res.status(500).json({ success: false, message: msg }); }
+});
+
+// ============================================================
+//  PRODUCTOS
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/productos', authenticateJWT, checkModuleAccess('PRODUCTOS'), async (req, res) => {
   try {
     const { search, estado, id_categoria } = req.query;
@@ -697,6 +864,7 @@ app.get('/api/productos', authenticateJWT, checkModuleAccess('PRODUCTOS'), async
       CASE WHEN p.stock = 0 THEN 'Agotado'
            WHEN p.stock <= p.stock_minimo THEN 'Bajo stock'
            ELSE 'Suficiente' END as estado_stock
+<<<<<<< HEAD
       FROM productos p 
       LEFT JOIN categorias c ON p.id_categoria = c.id_categoria 
       WHERE 1=1
@@ -718,6 +886,17 @@ app.get('/api/productos', authenticateJWT, checkModuleAccess('PRODUCTOS'), async
             : 'Error listando productos';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+      FROM productos p LEFT JOIN categorias c ON p.id_categoria=c.id_categoria WHERE 1=1`;
+    const params = []; let n = 1;
+    if (search) { query += ` AND (p.nombre ILIKE $${n})`; params.push(`%${search}%`); n++; }
+    if (estado !== undefined) { query += ` AND p.estado=$${n}`; params.push(parseInt(estado)); n++; }
+    if (id_categoria) { query += ` AND p.id_categoria=$${n}`; params.push(parseInt(id_categoria)); n++; }
+    query += ' ORDER BY p.id_producto DESC';
+    const result = await pool.query(query, params);
+    res.json({ success: true, count: result.rowCount, data: result.rows });
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error listando productos'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.get('/api/productos/:id', authenticateJWT, checkModuleAccess('PRODUCTOS'), async (req, res) => {
@@ -728,6 +907,7 @@ app.get('/api/productos/:id', authenticateJWT, checkModuleAccess('PRODUCTOS'), a
     );
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Producto no encontrado' });
     res.json({ success: true, data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error obteniendo producto:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' 
@@ -735,10 +915,14 @@ app.get('/api/productos/:id', authenticateJWT, checkModuleAccess('PRODUCTOS'), a
             : 'Error obteniendo producto';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo producto'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.post('/api/productos', authenticateJWT, checkModuleAccess('PRODUCTOS'), async (req, res) => {
   try {
+<<<<<<< HEAD
     const { 
       nombre, 
       id_categoria, 
@@ -797,10 +981,23 @@ app.post('/api/productos', authenticateJWT, checkModuleAccess('PRODUCTOS'), asyn
     }
     res.status(500).json({ success: false, message: msg });
   }
+=======
+    const { nombre, id_categoria, precio_compra, precio_venta, stock = 0, stock_minimo = 0, unidades_por_paquete = 1, estado = 1 } = req.body;
+    if (!nombre || !id_categoria || !precio_compra || !precio_venta) {
+      return res.status(400).json({ success: false, message: 'Nombre, categoría, precio compra y precio venta son requeridos' });
+    }
+    const r = await pool.query(
+      'INSERT INTO productos (nombre,id_categoria,precio_compra,precio_venta,stock,stock_minimo,unidades_por_paquete,estado) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+      [nombre, id_categoria, precio_compra, precio_venta, stock, stock_minimo, unidades_por_paquete, estado]
+    );
+    res.status(201).json({ success: true, message: 'Producto creado', data: r.rows[0] });
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error creando producto'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.put('/api/productos/:id', authenticateJWT, checkModuleAccess('PRODUCTOS'), async (req, res) => {
   try {
+<<<<<<< HEAD
     const { 
       nombre, 
       id_categoria, 
@@ -829,10 +1026,21 @@ app.put('/api/productos/:id', authenticateJWT, checkModuleAccess('PRODUCTOS'), a
             : 'Error actualizando producto';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+    const { nombre, id_categoria, precio_compra, precio_venta, stock, stock_minimo, unidades_por_paquete, estado } = req.body;
+    const r = await pool.query(
+      'UPDATE productos SET nombre=$1,id_categoria=$2,precio_compra=$3,precio_venta=$4,stock=$5,stock_minimo=$6,unidades_por_paquete=$7,estado=$8 WHERE id_producto=$9 RETURNING *',
+      [nombre, id_categoria, precio_compra, precio_venta, stock, stock_minimo, unidades_por_paquete, estado, req.params.id]
+    );
+    if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Producto no encontrado' });
+    res.json({ success: true, message: 'Producto actualizado', data: r.rows[0] });
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error actualizando producto'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.patch('/api/productos/:id/estado', authenticateJWT, checkModuleAccess('PRODUCTOS'), async (req, res) => {
   try {
+<<<<<<< HEAD
     const r = await pool.query(
       'UPDATE productos SET estado=$1 WHERE id_producto=$2 RETURNING *', 
       [req.body.estado, req.params.id]
@@ -846,6 +1054,12 @@ app.patch('/api/productos/:id/estado', authenticateJWT, checkModuleAccess('PRODU
             : 'Error cambiando estado';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+    const r = await pool.query('UPDATE productos SET estado=$1 WHERE id_producto=$2 RETURNING *', [req.body.estado, req.params.id]);
+    if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Producto no encontrado' });
+    res.json({ success: true, message: `Producto ${req.body.estado == 1 ? 'activado' : 'desactivado'}`, data: r.rows[0] });
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error cambiando estado'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.delete('/api/productos/:id', authenticateJWT, checkModuleAccess('PRODUCTOS'), async (req, res) => {
@@ -857,6 +1071,7 @@ app.delete('/api/productos/:id', authenticateJWT, checkModuleAccess('PRODUCTOS')
     const r = await pool.query('DELETE FROM productos WHERE id_producto=$1 RETURNING *', [req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Producto no encontrado' });
     res.json({ success: true, message: 'Producto eliminado' });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error eliminando producto:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' 
@@ -870,6 +1085,14 @@ app.delete('/api/productos/:id', authenticateJWT, checkModuleAccess('PRODUCTOS')
 //  PROVEEDORES
 // ════════════════════════════════════════════════════════════
 
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error eliminando producto'; res.status(500).json({ success: false, message: msg }); }
+});
+
+// ============================================================
+//  PROVEEDORES
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/proveedores', authenticateJWT, checkModuleAccess('PROVEEDORES'), async (req, res) => {
   try {
     const { search, estado } = req.query;
@@ -880,11 +1103,15 @@ app.get('/api/proveedores', authenticateJWT, checkModuleAccess('PROVEEDORES'), a
     query += ' ORDER BY id_proveedor DESC';
     const result = await pool.query(query, params);
     res.json({ success: true, count: result.rowCount, data: result.rows });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error listando proveedores:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error listando proveedores';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error listando proveedores'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.get('/api/proveedores/:id', authenticateJWT, checkModuleAccess('PROVEEDORES'), async (req, res) => {
@@ -892,11 +1119,15 @@ app.get('/api/proveedores/:id', authenticateJWT, checkModuleAccess('PROVEEDORES'
     const r = await pool.query('SELECT * FROM proveedores WHERE id_proveedor=$1', [req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Proveedor no encontrado' });
     res.json({ success: true, data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error obteniendo proveedor:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo proveedor';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo proveedor'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.post('/api/proveedores', authenticateJWT, checkModuleAccess('PROVEEDORES'), async (req, res) => {
@@ -908,11 +1139,15 @@ app.post('/api/proveedores', authenticateJWT, checkModuleAccess('PROVEEDORES'), 
       [nombre_razon_social, tipo_documento, documento, contacto, telefono, email, direccion, estado, tipo]
     );
     res.status(201).json({ success: true, message: 'Proveedor creado', data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error creando proveedor:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error creando proveedor';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error creando proveedor'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.put('/api/proveedores/:id', authenticateJWT, checkModuleAccess('PROVEEDORES'), async (req, res) => {
@@ -924,17 +1159,22 @@ app.put('/api/proveedores/:id', authenticateJWT, checkModuleAccess('PROVEEDORES'
     );
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Proveedor no encontrado' });
     res.json({ success: true, message: 'Proveedor actualizado', data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error actualizando proveedor:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error actualizando proveedor';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error actualizando proveedor'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.patch('/api/proveedores/:id/estado', authenticateJWT, checkModuleAccess('PROVEEDORES'), async (req, res) => {
   try {
     const { id } = req.params;
     const { estado } = req.body;
+<<<<<<< HEAD
     if (estado === 0 || estado === '0') {
       const compras = await pool.query('SELECT COUNT(*) as c FROM compras WHERE id_proveedor=$1 AND estado=1', [id]);
       if (parseInt(compras.rows[0].c) > 0) {
@@ -946,6 +1186,30 @@ app.patch('/api/proveedores/:id/estado', authenticateJWT, checkModuleAccess('PRO
     res.json({ success: true, message: `Proveedor ${estado == 1 ? 'activado' : 'desactivado'} exitosamente`, data: r.rows[0] });
   } catch (e) {
     console.error('Error cambiando estado de proveedor:', e.message);
+=======
+
+    // ✅ Si se desactiva, verificar que no tenga compras activas
+    if (estado === 0 || estado === '0') {
+      const compras = await pool.query(
+        'SELECT COUNT(*) as c FROM compras WHERE id_proveedor=$1 AND estado=1',
+        [id]
+      );
+      if (parseInt(compras.rows[0].c) > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No se puede desactivar: este proveedor tiene compras activas asociadas'
+        });
+      }
+    }
+
+    const r = await pool.query(
+      'UPDATE proveedores SET estado=$1 WHERE id_proveedor=$2 RETURNING *',
+      [estado, id]
+    );
+    if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Proveedor no encontrado' });
+    res.json({ success: true, message: `Proveedor ${estado == 1 ? 'activado' : 'desactivado'} exitosamente`, data: r.rows[0] });
+  } catch (e) {
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error al cambiar estado del proveedor' });
   }
 });
@@ -959,6 +1223,7 @@ app.delete('/api/proveedores/:id', authenticateJWT, checkModuleAccess('PROVEEDOR
     const r = await pool.query('DELETE FROM proveedores WHERE id_proveedor=$1 RETURNING *', [req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Proveedor no encontrado' });
     res.json({ success: true, message: 'Proveedor eliminado' });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error eliminando proveedor:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error eliminando proveedor';
@@ -970,6 +1235,14 @@ app.delete('/api/proveedores/:id', authenticateJWT, checkModuleAccess('PROVEEDOR
 //  CLIENTES
 // ════════════════════════════════════════════════════════════
 
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error eliminando proveedor'; res.status(500).json({ success: false, message: msg }); }
+});
+
+// ============================================================
+//  CLIENTES
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/clientes', authenticateJWT, checkModuleAccess('CLIENTES'), async (req, res) => {
   try {
     const { search, estado } = req.query;
@@ -980,11 +1253,15 @@ app.get('/api/clientes', authenticateJWT, checkModuleAccess('CLIENTES'), async (
     query += ' ORDER BY id_cliente DESC';
     const result = await pool.query(query, params);
     res.json({ success: true, count: result.rowCount, data: result.rows });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error listando clientes:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error listando clientes';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error listando clientes'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.get('/api/clientes/:id', authenticateJWT, checkModuleAccess('CLIENTES'), async (req, res) => {
@@ -992,11 +1269,15 @@ app.get('/api/clientes/:id', authenticateJWT, checkModuleAccess('CLIENTES'), asy
     const r = await pool.query('SELECT * FROM clientes WHERE id_cliente=$1', [req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
     res.json({ success: true, data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error obteniendo cliente:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo cliente';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo cliente'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.post('/api/clientes', authenticateJWT, checkModuleAccess('CLIENTES'), async (req, res) => {
@@ -1008,11 +1289,15 @@ app.post('/api/clientes', authenticateJWT, checkModuleAccess('CLIENTES'), async 
       [nombre, tipo_documento, documento, telefono, direccion, estado]
     );
     res.status(201).json({ success: true, message: 'Cliente creado', data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error creando cliente:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error creando cliente';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error creando cliente'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.put('/api/clientes/:id', authenticateJWT, checkModuleAccess('CLIENTES'), async (req, res) => {
@@ -1024,11 +1309,15 @@ app.put('/api/clientes/:id', authenticateJWT, checkModuleAccess('CLIENTES'), asy
     );
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
     res.json({ success: true, message: 'Cliente actualizado', data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error actualizando cliente:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error actualizando cliente';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error actualizando cliente'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.patch('/api/clientes/:id/estado', authenticateJWT, checkModuleAccess('CLIENTES'), async (req, res) => {
@@ -1043,11 +1332,15 @@ app.patch('/api/clientes/:id/estado', authenticateJWT, checkModuleAccess('CLIENT
     const r = await pool.query('UPDATE clientes SET estado=$1 WHERE id_cliente=$2 RETURNING *', [estado, req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
     res.json({ success: true, message: `Cliente ${estado == 1 ? 'activado' : 'desactivado'}`, data: r.rows[0] });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error cambiando estado de cliente:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error cambiando estado';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error cambiando estado'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.delete('/api/clientes/:id', authenticateJWT, checkModuleAccess('CLIENTES'), async (req, res) => {
@@ -1059,6 +1352,7 @@ app.delete('/api/clientes/:id', authenticateJWT, checkModuleAccess('CLIENTES'), 
     const r = await pool.query('DELETE FROM clientes WHERE id_cliente=$1 RETURNING *', [req.params.id]);
     if (r.rows.length === 0) return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
     res.json({ success: true, message: 'Cliente eliminado' });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error eliminando cliente:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error eliminando cliente';
@@ -1070,11 +1364,20 @@ app.delete('/api/clientes/:id', authenticateJWT, checkModuleAccess('CLIENTES'), 
 //  COMPRAS
 // ════════════════════════════════════════════════════════════
 
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error eliminando cliente'; res.status(500).json({ success: false, message: msg }); }
+});
+
+// ============================================================
+//  COMPRAS  ✅ CORREGIDO: usa unidades_por_paquete
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/compras', authenticateJWT, checkModuleAccess('COMPRAS'), async (req, res) => {
   try {
     const { search, estado, id_proveedor } = req.query;
     let query = `
       SELECT c.*, p.nombre_razon_social as nombre_proveedor
+<<<<<<< HEAD
       FROM compras c 
       LEFT JOIN proveedores p ON c.id_proveedor = p.id_proveedor 
       WHERE 1=1
@@ -1094,6 +1397,17 @@ app.get('/api/compras', authenticateJWT, checkModuleAccess('COMPRAS'), async (re
     console.error('Error en GET /api/compras:', error.message);
     res.status(500).json({ success: false, message: 'Error al listar las compras' });
   }
+=======
+      FROM compras c LEFT JOIN proveedores p ON c.id_proveedor=p.id_proveedor WHERE 1=1`;
+    const params = []; let n = 1;
+    if (search) { query += ` AND p.nombre_razon_social ILIKE $${n}`; params.push(`%${search}%`); n++; }
+    if (estado !== undefined) { query += ` AND c.estado=$${n}`; params.push(parseInt(estado)); n++; }
+    if (id_proveedor) { query += ` AND c.id_proveedor=$${n}`; params.push(parseInt(id_proveedor)); n++; }
+    query += ' ORDER BY c.id_compra DESC';
+    const result = await pool.query(query, params);
+    res.json({ success: true, count: result.rowCount, data: result.rows });
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error listando compras'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.get('/api/compras/:id', authenticateJWT, checkModuleAccess('COMPRAS'), async (req, res) => {
@@ -1111,11 +1425,16 @@ app.get('/api/compras/:id', authenticateJWT, checkModuleAccess('COMPRAS'), async
     `, [req.params.id]);
     res.json({ success: true, data: { ...compra.rows[0], detalles: detalles.rows } });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error obteniendo compra:', e.message);
+=======
+    console.error('ERROR GET /api/compras/:id →', e.message);
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error obteniendo compra' });
   }
 });
 
+<<<<<<< HEAD
 app.post('/api/compras', authenticateJWT, checkModuleAccess('COMPRAS'), async (req, res) => {
   const client = await pool.connect();
   
@@ -1141,10 +1460,26 @@ app.post('/api/compras', authenticateJWT, checkModuleAccess('COMPRAS'), async (r
       `INSERT INTO compras (id_proveedor, numero_factura, fecha, total, estado) 
        VALUES ($1, $2, NOW(), $3, 1) RETURNING *`,
       [parseInt(id_proveedor), numero_factura, total]
+=======
+// ✅ POST /api/compras — multiplica cantidad × unidades_por_paquete al sumar stock
+app.post('/api/compras', authenticateJWT, checkModuleAccess('COMPRAS'), async (req, res) => {
+  try {
+    const { id_proveedor, numero_factura, productos } = req.body;
+    if (!id_proveedor || !numero_factura || !productos || productos.length === 0) {
+      return res.status(400).json({ success: false, message: 'Proveedor, factura y productos son requeridos' });
+    }
+
+    const total = productos.reduce((s, p) => s + (p.precio * p.cantidad), 0);
+
+    const compraResult = await pool.query(
+      'INSERT INTO compras (id_proveedor, numero_factura, fecha, total, estado) VALUES ($1, $2, NOW(), $3, 1) RETURNING *',
+      [id_proveedor, numero_factura, total]
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     );
     const compra = compraResult.rows[0];
 
     for (const p of productos) {
+<<<<<<< HEAD
       const idProducto = parseInt(p.id_producto);
       const cantidad = parseInt(p.cantidad) || 0;
       const unidadesPorPaquete = parseInt(p.unidades_por_paquete) || 1;
@@ -1311,6 +1646,56 @@ app.patch('/api/compras/:id/estado', authenticateJWT, checkModuleAccess('COMPRAS
     
   } finally {
     client.release();
+=======
+      const unidadesPorPaquete = parseInt(p.unidades_por_paquete) || 1;
+      const unidadesTotales    = p.cantidad * unidadesPorPaquete;
+
+      await pool.query(
+        'INSERT INTO detalle_compras (id_compra, id_producto, cantidad, precio, subtotal, unidades_por_paquete) VALUES ($1,$2,$3,$4,$5,$6)',
+        [compra.id_compra, p.id_producto, p.cantidad, p.precio, (p.cantidad * p.precio), unidadesPorPaquete]
+      );
+
+      await pool.query(
+        'UPDATE productos SET stock=stock+$1, precio_compra=$2 WHERE id_producto=$3',
+        [unidadesTotales, p.precio, p.id_producto]
+      );
+    }
+
+    res.status(201).json({ success: true, message: 'Compra registrada exitosamente', data: compra });
+  } catch (e) {
+    console.error('Error creando compra:', e.message);
+    const msg = e.message?.includes('foreign key') ? 'Uno de los productos no existe en el inventario' : 'Error al registrar la compra';
+    res.status(500).json({ success: false, message: msg });
+  }
+});
+
+// ✅ PATCH /api/compras/:id/estado — al anular, resta cantidad × unidades_por_paquete
+app.patch('/api/compras/:id/completar', authenticateJWT, checkModuleAccess('COMPRAS'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificar que la compra existe
+    const compra = await pool.query('SELECT * FROM compras WHERE id_compra = $1', [id]);
+    if (compra.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Compra no encontrada' });
+    }
+    
+    // Verificar que está en estado Pendiente (1)
+    if (compra.rows[0].estado !== 1) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Solo se pueden completar compras que están en estado Pendiente' 
+      });
+    }
+    
+    // Actualizar estado a Completada/Recibida (2)
+    await pool.query('UPDATE compras SET estado = 2 WHERE id_compra = $1', [id]);
+    
+    res.json({ success: true, message: 'Compra marcada como completada exitosamente' });
+  } catch (error) {
+    console.error('Error al completar compra:', error);
+    res.status(500).json({ success: false, message: 'Error al completar la compra' });
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
   }
 });
 
@@ -1318,10 +1703,16 @@ app.delete('/api/compras/:id', authenticateJWT, (_req, res) => {
   res.status(405).json({ success: false, message: 'Las compras no se pueden eliminar. Usa la opción de anular.' });
 });
 
+<<<<<<< HEAD
 // ════════════════════════════════════════════════════════════
 //  VENTAS
 // ════════════════════════════════════════════════════════════
 
+=======
+// ============================================================
+//  VENTAS
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/ventas', authenticateJWT, checkModuleAccess('VENTAS'), async (req, res) => {
   try {
     const { search, estado, id_cliente } = req.query;
@@ -1335,11 +1726,15 @@ app.get('/api/ventas', authenticateJWT, checkModuleAccess('VENTAS'), async (req,
     query += ' ORDER BY v.id_venta DESC';
     const result = await pool.query(query, params);
     res.json({ success: true, count: result.rowCount, data: result.rows });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error listando ventas:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error listando ventas';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error listando ventas'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.get('/api/ventas/:id', authenticateJWT, checkModuleAccess('VENTAS'), async (req, res) => {
@@ -1354,11 +1749,15 @@ app.get('/api/ventas/:id', authenticateJWT, checkModuleAccess('VENTAS'), async (
       FROM detalle_ventas dv LEFT JOIN productos pr ON dv.id_producto=pr.id_producto WHERE dv.id_venta=$1
     `, [req.params.id]);
     res.json({ success: true, data: { ...venta.rows[0], detalles: detalles.rows } });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error obteniendo venta:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo venta';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo venta'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.post('/api/ventas', authenticateJWT, checkModuleAccess('VENTAS'), async (req, res) => {
@@ -1388,11 +1787,15 @@ app.post('/api/ventas', authenticateJWT, checkModuleAccess('VENTAS'), async (req
       await pool.query('UPDATE productos SET stock=stock-$1 WHERE id_producto=$2', [p.cantidad, p.id_producto]);
     }
     res.status(201).json({ success: true, message: 'Venta registrada exitosamente', data: venta });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error creando venta:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error creando venta';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error creando venta'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.patch('/api/ventas/:id/estado', authenticateJWT, checkModuleAccess('VENTAS'), async (req, res) => {
@@ -1409,25 +1812,36 @@ app.patch('/api/ventas/:id/estado', authenticateJWT, checkModuleAccess('VENTAS')
     }
     await pool.query('UPDATE ventas SET estado=$1 WHERE id_venta=$2', [estado, id]);
     res.json({ success: true, message: 'Estado actualizado' });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error actualizando estado de venta:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error actualizando estado';
     res.status(500).json({ success: false, message: msg });
   }
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error actualizando estado'; res.status(500).json({ success: false, message: msg }); }
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 });
 
 app.delete('/api/ventas/:id', authenticateJWT, (_req, res) => {
   res.status(405).json({ success: false, message: 'Las ventas no se pueden eliminar. Usa la opción de anular.' });
 });
 
+<<<<<<< HEAD
 // ════════════════════════════════════════════════════════════
 //  PERMISOS
 // ════════════════════════════════════════════════════════════
 
+=======
+// ============================================================
+//  PERMISOS
+// ============================================================
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/permisos', authenticateJWT, checkModuleAccess('ROLES'), async (req, res) => {
   try {
     const r = await pool.query('SELECT * FROM permisos ORDER BY nombre');
     res.json({ success: true, data: r.rows });
+<<<<<<< HEAD
   } catch (e) {
     console.error('Error obteniendo permisos:', e.message);
     const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo permisos';
@@ -1451,12 +1865,81 @@ app.get('/api/dashboard/stats', authenticateJWT, checkModuleAccess('DASHBOARD'),
     
     const comprasMes = await pool.query(`
       SELECT COALESCE(SUM(total), 0) as total
+=======
+  } catch (e) { const msg = e.message?.includes('duplicate') ? 'Ya existe un registro con esos datos' : e.message?.includes('foreign key') ? 'No se puede realizar esta operación porque tiene registros asociados' : 'Error obteniendo permisos'; res.status(500).json({ success: false, message: msg }); }
+});
+
+// ============================================================
+//  DASHBOARD
+// ============================================================
+app.get('/api/dashboard/stats', authenticateJWT, checkModuleAccess('DASHBOARD'), async (req, res) => {
+  try {
+    // Verificar si hay compras en el mes actual
+    const checkComprasMes = await pool.query(`
+      SELECT COUNT(*) as total
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
       FROM compras 
       WHERE estado = 2
         AND EXTRACT(YEAR FROM fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
         AND EXTRACT(MONTH FROM fecha) = EXTRACT(MONTH FROM CURRENT_DATE)
     `);
     
+<<<<<<< HEAD
+=======
+    let comprasQuery = '';
+    if (parseInt(checkComprasMes.rows[0].total) > 0) {
+      // Hay compras en el mes actual
+      comprasQuery = `
+        SELECT COALESCE(SUM(total), 0) as total
+        FROM compras 
+        WHERE estado = 2
+          AND EXTRACT(YEAR FROM fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
+          AND EXTRACT(MONTH FROM fecha) = EXTRACT(MONTH FROM CURRENT_DATE)
+      `;
+    } else {
+      // No hay compras en el mes actual, mostrar todas
+      comprasQuery = `
+        SELECT COALESCE(SUM(total), 0) as total
+        FROM compras 
+        WHERE estado = 2
+      `;
+    }
+    
+    const comprasMes = await pool.query(comprasQuery);
+    
+    // Mismo para ventas
+    const checkVentasMes = await pool.query(`
+      SELECT COUNT(*) as total
+      FROM ventas 
+      WHERE estado = 1
+        AND EXTRACT(YEAR FROM fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
+        AND EXTRACT(MONTH FROM fecha) = EXTRACT(MONTH FROM CURRENT_DATE)
+    `);
+    
+    let ventasQuery = '';
+    if (parseInt(checkVentasMes.rows[0].total) > 0) {
+      ventasQuery = `
+        SELECT COALESCE(SUM(total), 0) as total
+        FROM ventas 
+        WHERE estado = 1
+          AND EXTRACT(YEAR FROM fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
+          AND EXTRACT(MONTH FROM fecha) = EXTRACT(MONTH FROM CURRENT_DATE)
+      `;
+    } else {
+      ventasQuery = `
+        SELECT COALESCE(SUM(total), 0) as total
+        FROM ventas 
+        WHERE estado = 1
+      `;
+    }
+    
+    const ventasMes = await pool.query(ventasQuery);
+    
+    console.log('Compras recibidas:', comprasMes.rows[0].total);
+    console.log('Ventas completadas:', ventasMes.rows[0].total);
+    
+    // ... resto del código igual
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     const [productos, clientes, proveedores, bajoStock, agotados] = await Promise.all([
       pool.query("SELECT COUNT(*) as c FROM productos WHERE estado = 1"),
       pool.query("SELECT COUNT(*) as c FROM clientes WHERE estado = 1"),
@@ -1479,11 +1962,40 @@ app.get('/api/dashboard/stats', authenticateJWT, checkModuleAccess('DASHBOARD'),
       }
     });
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error en /api/dashboard/stats:', error.message);
+=======
+    console.error('Error:', error);
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error obteniendo estadísticas' });
   }
 });
 
+<<<<<<< HEAD
+=======
+// Endpoint de diagnóstico - solo para desarrollo
+app.get('/api/debug/data', authenticateJWT, async (req, res) => {
+  try {
+    const ventas = await pool.query('SELECT * FROM ventas');
+    const compras = await pool.query('SELECT * FROM compras');
+    const productos = await pool.query('SELECT * FROM productos LIMIT 5');
+    
+    res.json({
+      success: true,
+      data: {
+        ventas: ventas.rows,
+        compras: compras.rows,
+        productos: productos.rows,
+        total_ventas: ventas.rows.length,
+        total_compras: compras.rows.length
+      }
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/dashboard/ventas-chart', authenticateJWT, checkModuleAccess('DASHBOARD'), async (req, res) => {
   try {
     const { periodo = 'semana' } = req.query;
@@ -1519,11 +2031,70 @@ app.get('/api/dashboard/ventas-chart', authenticateJWT, checkModuleAccess('DASHB
     const result = await pool.query(query);
     res.json({ success: true, data: result.rows });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error dashboard chart:', e.message);
+=======
+    console.error('Error dashboard chart:', e);
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error obteniendo gráfico' });
   }
 });
 
+<<<<<<< HEAD
+=======
+app.get('/api/dashboard/stats', authenticateJWT, checkModuleAccess('DASHBOARD'), async (req, res) => {
+  try {
+    console.log('=== DASHBOARD STATS CORREGIDO ===');
+    
+    // VENTAS: estado = 1 (completado)
+    const ventasMes = await pool.query(`
+      SELECT COALESCE(SUM(total), 0) as total
+      FROM ventas 
+      WHERE estado = 1
+        AND EXTRACT(YEAR FROM fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
+        AND EXTRACT(MONTH FROM fecha) = EXTRACT(MONTH FROM CURRENT_DATE)
+    `);
+    
+    // COMPRAS: estado = 2 (recibido) - CAMBIADO DE IN(1,2) A =2
+    const comprasMes = await pool.query(`
+      SELECT COALESCE(SUM(total), 0) as total
+      FROM compras 
+      WHERE estado = 2
+        AND EXTRACT(YEAR FROM fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
+        AND EXTRACT(MONTH FROM fecha) = EXTRACT(MONTH FROM CURRENT_DATE)
+    `);
+    
+    console.log('Ventas completadas (estado=1):', ventasMes.rows[0].total);
+    console.log('Compras recibidas (estado=2):', comprasMes.rows[0].total);
+    
+    const [productos, clientes, proveedores, bajoStock, agotados] = await Promise.all([
+      pool.query("SELECT COUNT(*) as c FROM productos WHERE estado = 1"),
+      pool.query("SELECT COUNT(*) as c FROM clientes WHERE estado = 1"),
+      pool.query("SELECT COUNT(*) as c FROM proveedores WHERE estado = 1"),
+      pool.query("SELECT COUNT(*) as c FROM productos WHERE stock <= stock_minimo AND estado = 1 AND stock > 0"),
+      pool.query("SELECT COUNT(*) as c FROM productos WHERE stock = 0 AND estado = 1")
+    ]);
+    
+    const responseData = {
+      totalProductos: parseInt(productos.rows[0].c),
+      totalClientes: parseInt(clientes.rows[0].c),
+      totalProveedores: parseInt(proveedores.rows[0].c),
+      productosBajoStock: parseInt(bajoStock.rows[0].c),
+      productosAgotados: parseInt(agotados.rows[0].c),
+      ventasMes: parseFloat(ventasMes.rows[0].total),
+      comprasMes: parseFloat(comprasMes.rows[0].total),
+      balanceMes: parseFloat(ventasMes.rows[0].total) - parseFloat(comprasMes.rows[0].total)
+    };
+    
+    console.log('Respuesta:', responseData);
+    res.json({ success: true, data: responseData });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ success: false, message: 'Error obteniendo estadísticas' });
+  }
+});
+
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
 app.get('/api/dashboard/reporte-financiero', authenticateJWT, checkModuleAccess('DASHBOARD'), async (req, res) => {
   try {
     const { tipo = 'mensual' } = req.query;
@@ -1538,11 +2109,21 @@ app.get('/api/dashboard/reporte-financiero', authenticateJWT, checkModuleAccess(
       FROM (
         SELECT fecha, total, 'venta' as tipo 
         FROM ventas 
+<<<<<<< HEAD
         WHERE estado = 1
         UNION ALL
         SELECT fecha, total, 'compra' as tipo 
         FROM compras 
         WHERE estado = 2
+=======
+        WHERE estado = 1  -- Solo completadas
+        
+        UNION ALL
+        
+        SELECT fecha, total, 'compra' as tipo 
+        FROM compras 
+        WHERE estado = 2  -- Solo recibidas
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
       ) t
       GROUP BY DATE_TRUNC($1, fecha)
       ORDER BY periodo DESC
@@ -1551,7 +2132,11 @@ app.get('/api/dashboard/reporte-financiero', authenticateJWT, checkModuleAccess(
     
     res.json({ success: true, data: result.rows });
   } catch (e) {
+<<<<<<< HEAD
     console.error('Error en reporte financiero:', e.message);
+=======
+    console.error('Error:', e);
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
     res.status(500).json({ success: false, message: 'Error obteniendo reporte financiero' });
   }
 });
@@ -1560,8 +2145,14 @@ app.get('/api/dashboard/reporte-financiero', authenticateJWT, checkModuleAccess(
 //  INICIAR SERVIDOR
 // ============================================================
 app.listen(PORT, '0.0.0.0', () => {
+<<<<<<< HEAD
   console.log('='.repeat(30));
   console.log('🚀 API THE BAR v12.0');
   console.log('='.repeat(30));
+=======
+  console.log('='.repeat(60));
+  console.log('🚀 API THE BAR v12.0');
+  console.log('='.repeat(60));
+>>>>>>> 574b0ef3620c39bcd119788c9a876a337f312d63
   console.log(`Puerto: ${PORT}`);
 });
