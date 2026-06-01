@@ -23,19 +23,22 @@ exports.getPedidos = async (req, res) => {
 // GET /api/pedidos/:id
 exports.getPedidoById = async (req, res) => {
   try {
-    const pedido = await pool.query(`
-      SELECT v.*, c.nombre as nombre_cliente 
-      FROM ventas v LEFT JOIN clientes c ON v.id_cliente = c.id_cliente 
-      WHERE v.id_venta = $1 AND v.estado = 2`, [req.params.id]);
-    if (pedido.rows.length === 0) return res.status(404).json({ success: false, message: 'Pedido no encontrado o ya completado' });
+    const pedido = await pool.query(
+      `SELECT v.*, c.nombre as nombre_cliente FROM ventas v LEFT JOIN clientes c ON v.id_cliente=c.id_cliente WHERE v.id_venta=$1 AND v.estado=2`, 
+      [req.params.id]
+    );
+    if (pedido.rows.length === 0) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
     
-    const detalles = await pool.query(`
-      SELECT dv.*, p.nombre as nombre_producto 
-      FROM detalle_ventas dv LEFT JOIN productos p ON dv.id_producto = p.id_producto 
-      WHERE dv.id_venta = $1`, [req.params.id]);
-      
+    // ✅ CAMBIO AQUÍ: agregamos ", p.stock"
+    const detalles = await pool.query(
+      `SELECT dv.*, p.nombre as nombre_producto, p.stock FROM detalle_ventas dv LEFT JOIN productos p ON dv.id_producto=p.id_producto WHERE dv.id_venta=$1`, 
+      [req.params.id]
+    );
+    
     res.json({ success: true, data: { ...pedido.rows[0], detalles: detalles.rows } });
-  } catch (e) { res.status(500).json({ success: false, message: 'Error obteniendo pedido' }); }
+  } catch (e) { 
+    res.status(500).json({ success: false, message: 'Error obteniendo pedido' }); 
+  }
 };
 
 // POST /api/pedidos - Crear en estado pendiente (2)
