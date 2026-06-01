@@ -15,14 +15,14 @@ exports.getVentas = async (req, res) => {
   } catch (e) { res.status(500).json({ success: false, message: 'Error listando ventas' }); }
 };
 
-// GET /api/pedidos/:id
-exports.getPedidoById = async (req, res) => {
+// GET /api/ventas/:id
+exports.getVentaById = async (req, res) => {
   try {
-    const pedido = await pool.query(
-      `SELECT v.*, c.nombre as nombre_cliente FROM ventas v LEFT JOIN clientes c ON v.id_cliente=c.id_cliente WHERE v.id_venta=$1 AND v.estado=2`, 
+    const venta = await pool.query(
+      `SELECT v.*, c.nombre as nombre_cliente FROM ventas v LEFT JOIN clientes c ON v.id_cliente=c.id_cliente WHERE v.id_venta=$1 AND v.estado=1`, 
       [req.params.id]
     );
-    if (pedido.rows.length === 0) return res.status(404).json({ success: false, message: 'Pedido no encontrado' });
+    if (venta.rows.length === 0) return res.status(404).json({ success: false, message: 'Venta no encontrada' });
     
     // ✅ CAMBIO AQUÍ: agregamos ", p.stock"
     const detalles = await pool.query(
@@ -30,9 +30,9 @@ exports.getPedidoById = async (req, res) => {
       [req.params.id]
     );
     
-    res.json({ success: true, data: { ...pedido.rows[0], detalles: detalles.rows } });
+    res.json({ success: true, data: { ...venta.rows[0], detalles: detalles.rows } });
   } catch (e) { 
-    res.status(500).json({ success: false, message: 'Error obteniendo pedido' }); 
+    res.status(500).json({ success: false, message: 'Error obteniendo venta' }); 
   }
 };
 
