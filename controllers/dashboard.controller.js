@@ -4,29 +4,53 @@ const pool = require('../config/database');
 // GET /api/dashboard/stats
 exports.getStats = async (req, res) => {
   try {
-    const [productos, clientes, proveedores, bajoStock, agotados, ventasMes, comprasMes] = await Promise.all([
+    // ✅ Query mejorada: verifica mes actual correctamente
+    const [productos, clientes, proveedores, bajoStock, agotados, ventasMes, comprasMes, ventasDebug] = await Promise.all([
       pool.query("SELECT COUNT(*) as c FROM productos WHERE estado = 1"),
       pool.query("SELECT COUNT(*) as c FROM clientes WHERE estado = 1"),
       pool.query("SELECT COUNT(*) as c FROM proveedores WHERE estado = 1"),
       pool.query("SELECT COUNT(*) as c FROM productos WHERE stock <= stock_minimo AND estado = 1 AND stock > 0"),
       pool.query("SELECT COUNT(*) as c FROM productos WHERE stock = 0 AND estado = 1"),
-      // ✅ Ventas del mes actual (estado = 1 = completadas)
+      
+      // ✅ Ventas del mes actual - Versión corregida
       pool.query(`
-        SELECT COALESCE(SUM(total), 0) as t 
+        SELECT 
+          COUNT(*) as cantidad,
+          COALESCE(SUM(total), 0) as t,
+          MIN(fecha) as primera_venta,
+          MAX(fecha) as ultima_venta
         FROM ventas 
-        WHERE EXTRACT(MONTH FROM fecha) = EXTRACT(MONTH FROM CURRENT_DATE)
-          AND EXTRACT(YEAR FROM fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
-          AND estado = 1
+        WHERE estado = 1
+          AND fecha >= DATE_TRUNC('month', CURRENT_DATE)
+          AND fecha < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
       `),
-      // ✅ Compras del mes actual (estado IN (1,2) = completadas y pendientes)
+      
+      // ✅ Compras del mes actual - Versión corregida
       pool.query(`
-        SELECT COALESCE(SUM(total), 0) as t 
+        SELECT 
+          COUNT(*) as cantidad,
+          COALESCE(SUM(total), 0) as t
         FROM compras 
-        WHERE EXTRACT(MONTH FROM fecha) = EXTRACT(MONTH FROM CURRENT_DATE)
-          AND EXTRACT(YEAR FROM fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
-          AND estado IN (1, 2)
+        WHERE estado IN (1, 2)
+          AND fecha >= DATE_TRUNC('month', CURRENT_DATE)
+          AND fecha < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+      `),
+      
+      // 🔍 DEBUG: Todas las ventas (sin filtro de mes)
+      pool.query(`
+        SELECT 
+          COUNT(*) as total_ventas,
+          COALESCE(SUM(total), 0) as total_general,
+          MIN(fecha) as primera_venta,
+          MAX(fecha) as ultima_venta,
+          COUNT(CASE WHEN estado = 1 THEN 1 END) as completadas,
+          COUNT(CASE WHEN estado = 2 THEN 1 END) as pendientes
+        FROM ventas
       `)
     ]);
+    
+    console.log('📊 DEBUG Ventas:', ventasDebug.rows[0]);
+    console.log('📊 DEBUG Ventas del mes:', ventasMes.rows[0]);
     
     res.json({
       success: true,
@@ -38,15 +62,19 @@ exports.getStats = async (req, res) => {
         productosAgotados: parseInt(agotados.rows[0].c),
         ventasMes: parseFloat(ventasMes.rows[0].t),
         comprasMes: parseFloat(comprasMes.rows[0].t),
-        balanceMes: parseFloat(ventasMes.rows[0].t) - parseFloat(comprasMes.rows[0].t)
+        balanceMes: parseFloat(ventasMes.rows[0].t) - parseFloat(comprasMes.rows[0].t),
+        // 🔍 Datos debug (para ver en consola)
+        _debug: {
+          totalVentas: ventasDebug.rows[0],
+          ventasDelMes: ventasMes.rows[0]
+        }
       }
     });
   } catch (e) {
-    console.error('Error dashboard stats:', e);
+    console.error('❌ Error dashboard stats:', e);
     res.status(500).json({ success: false, message: 'Error obteniendo estadísticas' });
   }
 };
-
 // GET /api/dashboard/ventas-chart
 exports.getVentasChart = async (req, res) => {
   try {
