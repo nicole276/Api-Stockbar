@@ -40,31 +40,75 @@ exports.getVentasChart = async (req, res) => {
     let query = '';
     
     if (periodo === 'semana') {
+      // ✅ Devuelve todos los días de la semana, incluso si no hay ventas
       query = `
-        SELECT TRIM(TO_CHAR(fecha, 'Day')) as label,
-               COALESCE(SUM(total), 0) as value
-        FROM ventas
-        WHERE fecha >= CURRENT_DATE - INTERVAL '7 days' AND estado = 1
-        GROUP BY TRIM(TO_CHAR(fecha, 'Day')), EXTRACT(DOW FROM fecha)
-        ORDER BY EXTRACT(DOW FROM fecha)
+        WITH dias_semana AS (
+          SELECT 0 as dow, 'Domingo' as nombre
+          UNION ALL SELECT 1, 'Lunes'
+          UNION ALL SELECT 2, 'Martes'
+          UNION ALL SELECT 3, 'Miércoles'
+          UNION ALL SELECT 4, 'Jueves'
+          UNION ALL SELECT 5, 'Viernes'
+          UNION ALL SELECT 6, 'Sábado'
+        ),
+        ventas_semana AS (
+          SELECT EXTRACT(DOW FROM fecha) as dow,
+                 COALESCE(SUM(total), 0) as value
+          FROM ventas
+          WHERE fecha >= CURRENT_DATE - INTERVAL '7 days' AND estado = 1
+          GROUP BY EXTRACT(DOW FROM fecha)
+        )
+        SELECT d.nombre as label,
+               COALESCE(v.value, 0) as value
+        FROM dias_semana d
+        LEFT JOIN ventas_semana v ON d.dow = v.dow
+        ORDER BY d.dow
       `;
     } else if (periodo === 'mes') {
+      // ✅ Devuelve los últimos 30 días, incluso si no hay ventas
       query = `
-        SELECT TO_CHAR(fecha, 'YYYY-MM-DD') as label,
-               COALESCE(SUM(total), 0) as value
-        FROM ventas
-        WHERE fecha >= CURRENT_DATE - INTERVAL '30 days' AND estado = 1
-        GROUP BY TO_CHAR(fecha, 'YYYY-MM-DD')
-        ORDER BY label
+        WITH fechas AS (
+          SELECT generate_series(
+            CURRENT_DATE - INTERVAL '29 days',
+            CURRENT_DATE,
+            '1 day'::interval
+          )::date as fecha
+        ),
+        ventas_dia AS (
+          SELECT fecha::date as fecha,
+                 COALESCE(SUM(total), 0) as value
+          FROM ventas
+          WHERE fecha >= CURRENT_DATE - INTERVAL '30 days' AND estado = 1
+          GROUP BY fecha::date
+        )
+        SELECT TO_CHAR(f.fecha, 'DD/MM') as label,
+               COALESCE(v.value, 0) as value
+        FROM fechas f
+        LEFT JOIN ventas_dia v ON f.fecha = v.fecha
+        ORDER BY f.fecha
       `;
     } else {
+      // ✅ Devuelve los últimos 12 meses, incluso si no hay ventas
       query = `
-        SELECT TRIM(TO_CHAR(fecha, 'Month')) as label,
-               COALESCE(SUM(total), 0) as value
-        FROM ventas
-        WHERE fecha >= CURRENT_DATE - INTERVAL '1 year' AND estado = 1
-        GROUP BY TRIM(TO_CHAR(fecha, 'Month')), EXTRACT(MONTH FROM fecha)
-        ORDER BY EXTRACT(MONTH FROM fecha)
+        WITH meses AS (
+          SELECT generate_series(
+            DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '11 months',
+            DATE_TRUNC('month', CURRENT_DATE),
+            '1 month'::interval
+          )::date as fecha
+        ),
+        ventas_mes AS (
+          SELECT DATE_TRUNC('month', fecha)::date as fecha,
+                 COALESCE(SUM(total), 0) as value
+          FROM ventas
+          WHERE fecha >= CURRENT_DATE - INTERVAL '1 year' AND estado = 1
+          GROUP BY DATE_TRUNC('month', fecha)
+        )
+        SELECT TO_CHAR(m.fecha, 'Month') as label,
+               COALESCE(v.value, 0) as value
+        FROM meses m
+        LEFT JOIN ventas_mes v ON DATE_TRUNC('month', m.fecha) = v.fecha
+        ORDER BY m.fecha
       `;
     }
     
@@ -81,12 +125,12 @@ exports.getProductosPopulares = async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT p.id_producto, p.nombre, p.precio_venta,
-             SUM(dv.cantidad) as total_vendido,
+             COALESCE(SUM(dv.cantidad), 0) as total_vendido,
              COUNT(DISTINCT v.id_venta) as veces_vendido
       FROM productos p
-      JOIN detalle_ventas dv ON p.id_producto = dv.id_producto
-      JOIN ventas v ON dv.id_venta = v.id_venta
-      WHERE v.estado = 1 AND v.fecha >= CURRENT_DATE - INTERVAL '30 days'
+      LEFT JOIN detalle_ventas dv ON p.id_producto = dv.id_producto
+      LEFT JOIN ventas v ON dv.id_venta = v.id_venta AND v.estado = 1 AND v.fecha >= CURRENT_DATE - INTERVAL '30 days'
+      WHERE p.estado = 1
       GROUP BY p.id_producto, p.nombre, p.precio_venta
       ORDER BY total_vendido DESC
       LIMIT 10
@@ -103,23 +147,48 @@ exports.getReporteFinanciero = async (req, res) => {
   try {
     const { tipo = 'mensual' } = req.query;
     let trunc = 'month';
-    if (tipo === 'semanal') trunc = 'week';
-    if (tipo === 'anual') trunc = 'year';
+    let interval = '11 months';
+    let format = 'Month YYYY';
     
-    const result = await pool.query(`
-      SELECT DATE_TRUNC($1, fecha) as periodo,
-             SUM(CASE WHEN tipo = 'venta' THEN total ELSE 0 END) as ingresos,
-             SUM(CASE WHEN tipo = 'compra' THEN total ELSE 0 END) as egresos
-      FROM (
-        SELECT fecha, total, 'venta' as tipo FROM ventas WHERE estado = 1
-        UNION ALL
-        SELECT fecha, total, 'compra' as tipo FROM compras WHERE estado IN (1,2)
-      ) t
-      GROUP BY DATE_TRUNC($1, fecha)
-      ORDER BY periodo DESC
-      LIMIT 12
-    `, [trunc]);
+    if (tipo === 'semanal') {
+      trunc = 'week';
+      interval = '7 days';
+      format = 'DD/MM';
+    } else if (tipo === 'anual') {
+      trunc = 'year';
+      interval = '5 years';
+      format = 'YYYY';
+    }
     
+    // ✅ Devuelve todos los períodos, incluso si no hay datos
+    const query = `
+      WITH periodos AS (
+        SELECT generate_series(
+          DATE_TRUNC($1, CURRENT_DATE) - ($2::interval),
+          DATE_TRUNC($1, CURRENT_DATE),
+          ('1 ' || $1)::interval
+        )::date as fecha
+      ),
+      datos AS (
+        SELECT DATE_TRUNC($1, fecha) as periodo,
+               SUM(CASE WHEN tipo = 'venta' THEN total ELSE 0 END) as ingresos,
+               SUM(CASE WHEN tipo = 'compra' THEN total ELSE 0 END) as egresos
+        FROM (
+          SELECT fecha, total, 'venta' as tipo FROM ventas WHERE estado = 1
+          UNION ALL
+          SELECT fecha, total, 'compra' as tipo FROM compras WHERE estado IN (1,2)
+        ) t
+        GROUP BY DATE_TRUNC($1, fecha)
+      )
+      SELECT TO_CHAR(p.fecha, $3) as periodo,
+             COALESCE(d.ingresos, 0) as ingresos,
+             COALESCE(d.egresos, 0) as egresos
+      FROM periodos p
+      LEFT JOIN datos d ON DATE_TRUNC($1, p.fecha) = d.periodo
+      ORDER BY p.fecha
+    `;
+    
+    const result = await pool.query(query, [trunc, interval, format]);
     res.json({ success: true, data: result.rows });
   } catch (e) {
     console.error('Error dashboard reporte financiero:', e);
