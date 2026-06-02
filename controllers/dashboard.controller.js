@@ -10,8 +10,22 @@ exports.getStats = async (req, res) => {
       pool.query("SELECT COUNT(*) as c FROM proveedores WHERE estado = 1"),
       pool.query("SELECT COUNT(*) as c FROM productos WHERE stock <= stock_minimo AND estado = 1 AND stock > 0"),
       pool.query("SELECT COUNT(*) as c FROM productos WHERE stock = 0 AND estado = 1"),
-      pool.query("SELECT COALESCE(SUM(total),0) as t FROM ventas WHERE DATE_TRUNC('month', fecha) = DATE_TRUNC('month', CURRENT_DATE) AND estado = 1"),
-      pool.query("SELECT COALESCE(SUM(total),0) as t FROM compras WHERE DATE_TRUNC('month', fecha) = DATE_TRUNC('month', CURRENT_DATE) AND estado IN (1,2)")
+      // ✅ Ventas del mes actual (estado = 1 = completadas)
+      pool.query(`
+        SELECT COALESCE(SUM(total), 0) as t 
+        FROM ventas 
+        WHERE EXTRACT(MONTH FROM fecha) = EXTRACT(MONTH FROM CURRENT_DATE)
+          AND EXTRACT(YEAR FROM fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
+          AND estado = 1
+      `),
+      // ✅ Compras del mes actual (estado IN (1,2) = completadas y pendientes)
+      pool.query(`
+        SELECT COALESCE(SUM(total), 0) as t 
+        FROM compras 
+        WHERE EXTRACT(MONTH FROM fecha) = EXTRACT(MONTH FROM CURRENT_DATE)
+          AND EXTRACT(YEAR FROM fecha) = EXTRACT(YEAR FROM CURRENT_DATE)
+          AND estado IN (1, 2)
+      `)
     ]);
     
     res.json({
@@ -40,16 +54,15 @@ exports.getVentasChart = async (req, res) => {
     let query = '';
     
     if (periodo === 'semana') {
-      // ✅ Devuelve todos los días de la semana, incluso si no hay ventas
       query = `
         WITH dias_semana AS (
-          SELECT 0 as dow, 'Domingo' as nombre
-          UNION ALL SELECT 1, 'Lunes'
-          UNION ALL SELECT 2, 'Martes'
-          UNION ALL SELECT 3, 'Miércoles'
-          UNION ALL SELECT 4, 'Jueves'
-          UNION ALL SELECT 5, 'Viernes'
-          UNION ALL SELECT 6, 'Sábado'
+          SELECT 0 as dow, 'Dom' as nombre
+          UNION ALL SELECT 1, 'Lun'
+          UNION ALL SELECT 2, 'Mar'
+          UNION ALL SELECT 3, 'Mie'
+          UNION ALL SELECT 4, 'Jue'
+          UNION ALL SELECT 5, 'Vie'
+          UNION ALL SELECT 6, 'Sab'
         ),
         ventas_semana AS (
           SELECT EXTRACT(DOW FROM fecha) as dow,
@@ -65,7 +78,6 @@ exports.getVentasChart = async (req, res) => {
         ORDER BY d.dow
       `;
     } else if (periodo === 'mes') {
-      // ✅ Devuelve los últimos 30 días, incluso si no hay ventas
       query = `
         WITH fechas AS (
           SELECT generate_series(
@@ -88,7 +100,6 @@ exports.getVentasChart = async (req, res) => {
         ORDER BY f.fecha
       `;
     } else {
-      // ✅ Devuelve los últimos 12 meses, incluso si no hay ventas
       query = `
         WITH meses AS (
           SELECT generate_series(
@@ -104,7 +115,7 @@ exports.getVentasChart = async (req, res) => {
           WHERE fecha >= CURRENT_DATE - INTERVAL '1 year' AND estado = 1
           GROUP BY DATE_TRUNC('month', fecha)
         )
-        SELECT TO_CHAR(m.fecha, 'Month') as label,
+        SELECT TO_CHAR(m.fecha, 'Mon') as label,
                COALESCE(v.value, 0) as value
         FROM meses m
         LEFT JOIN ventas_mes v ON DATE_TRUNC('month', m.fecha) = v.fecha
@@ -148,7 +159,7 @@ exports.getReporteFinanciero = async (req, res) => {
     const { tipo = 'mensual' } = req.query;
     let trunc = 'month';
     let interval = '11 months';
-    let format = 'Month YYYY';
+    let format = 'Mon YYYY';
     
     if (tipo === 'semanal') {
       trunc = 'week';
@@ -160,7 +171,6 @@ exports.getReporteFinanciero = async (req, res) => {
       format = 'YYYY';
     }
     
-    // ✅ Devuelve todos los períodos, incluso si no hay datos
     const query = `
       WITH periodos AS (
         SELECT generate_series(
