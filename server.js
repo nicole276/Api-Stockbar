@@ -2,7 +2,7 @@
 //  THE BAR - API SERVER  v13.0.0  (ARQUITECTURA MODULAR)
 //  Base de datos: Neon PostgreSQL
 //  Autor: Nicole - Aprendiz SENA
-//  Última actualización: Mayo 2026
+//  Última actualización: Junio 2026
 // ============================================================
 const express    = require('express');
 const cors       = require('cors');
@@ -14,7 +14,7 @@ require('dotenv').config();
 
 // ── Configuración modular ────────────────────────────────────
 const pool = require('./config/database');        // Conexión DB centralizada
-const transporter = require('./config/email');    // Email centralizado
+const { sendMail } = require('./config/email');    // Email centralizado
 const { JWT_SECRET } = require('./config/jwt');   // JWT centralizado
 
 // ── Middlewares personalizados ───────────────────────────────
@@ -171,7 +171,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         </div>
       `
     };
-    await transporter.sendMail(mailOptions);
+    await sendMail(mailOptions);
     res.json({ success: true, message: 'Código enviado a tu correo' });
   } catch (error) {
     console.error('Error forgot-password:', error);
@@ -267,7 +267,7 @@ app.get('/api/user/menu', authenticateJWT, async (req, res) => {
 // ============================================================
 app.listen(PORT, '0.0.0.0', () => {
   console.log('='.repeat(60));
-  console.log('🚀 API THE BAR v12.0');
+  console.log('API THE BAR v13.0');
   console.log('='.repeat(60));
   console.log(`Puerto: ${PORT}`);
   console.log('='.repeat(60));
