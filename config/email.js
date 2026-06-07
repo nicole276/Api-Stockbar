@@ -3,49 +3,51 @@ const Brevo = require('@getbrevo/brevo');
 
 // ── Verificación de variables de entorno ─────────────────────
 console.log('='.repeat(60));
-console.log('CONFIGURACIÓN DE CORREO (BREVO)');
+console.log('📧 CONFIGURACIÓN DE CORREO (BREVO)');
 console.log('='.repeat(60));
-console.log('BREVO_EMAIL:', process.env.BREVO_EMAIL ? '✓ cargado' : '✗ NO cargado');
-console.log('BREVO_API_KEY:', process.env.BREVO_API_KEY ? '✓ (oculto)' : '✗ NO cargado');
+console.log('📧 BREVO_EMAIL:', process.env.BREVO_EMAIL ? '✓ cargado' : '✗ NO cargado');
+console.log('🔐 BREVO_API_KEY:', process.env.BREVO_API_KEY ? '✓ (oculto)' : '✗ NO cargado');
 
-// ── Validación de credenciales ───────────────────────────────
 if (!process.env.BREVO_API_KEY || !process.env.BREVO_EMAIL) {
-  console.error('ERROR: Faltan variables BREVO_API_KEY o BREVO_EMAIL');
+  console.error('❌ ERROR: Faltan variables BREVO_API_KEY o BREVO_EMAIL');
 }
 
-// ── Inicializar instancia de la API de Brevo ─────────────────
-const apiInstance = new Brevo.TransactionalEmailsApi();
-
-// Configurar la API Key (forma correcta según documentación oficial)
-apiInstance.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
-
-console.log('Cliente Brevo inicializado correctamente');
+console.log('✅ Cliente Brevo inicializado correctamente');
 console.log('='.repeat(60));
 
-// ── Función para enviar correos transaccionales ──────────────
 const sendMail = async (mailOptions) => {
   try {
-    const email = new Brevo.SendSmtpEmail();
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: {
+          name: 'The Bar - Sistema de Gestión',
+          email: process.env.BREVO_EMAIL
+        },
+        to: [{ email: mailOptions.to }],
+        subject: mailOptions.subject,
+        htmlContent: mailOptions.html
+      })
+    });
 
-    email.subject = mailOptions.subject;
-    email.htmlContent = mailOptions.html;
-    email.sender = {
-      name: 'The Bar - Sistema de Gestión',
-      email: process.env.BREVO_EMAIL
-    };
-    email.to = [{ email: mailOptions.to }];
+    const data = await response.json();
 
-    const response = await apiInstance.sendTransacEmail(email);
-    console.log('Correo enviado exitosamente. ID:', response.messageId);
-    return response;
-  } catch (error) {
-    console.error('Error enviando correo:', error.message);
-    if (error.response) {
-      console.error('Detalles:', error.response.body);
+    if (!response.ok) {
+      console.error('❌ Error de Brevo:', data);
+      throw new Error(data.message || 'Error al enviar el correo');
     }
+
+    console.log('✅ Correo enviado exitosamente. ID:', data.messageId);
+    return data;
+  } catch (error) {
+    console.error('❌ Error enviando correo:', error.message);
     throw error;
   }
 };
 
-// ── Exportar función ─────────────────────────────────────────
 module.exports = { sendMail };

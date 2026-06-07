@@ -14,7 +14,7 @@ require('dotenv').config();
 
 // ── Configuración modular ────────────────────────────────────
 const pool = require('./config/database');        // Conexión DB centralizada
-const { sendMail } = require('./config/email');   // Email centralizado
+const { sendMail } = require('./config/email');  // Email centralizado
 const { JWT_SECRET } = require('./config/jwt');   // JWT centralizado
 
 // ── Middlewares personalizados ───────────────────────────────
