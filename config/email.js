@@ -2,10 +2,10 @@
 
 // ── Verificación de variables de entorno ─────────────────────
 console.log('='.repeat(60));
-console.log('📧 CONFIGURACIÓN DE CORREO (BREVO)');
+console.log('CONFIGURACIÓN DE CORREO (BREVO)');
 console.log('='.repeat(60));
-console.log('📧 BREVO_EMAIL:', process.env.BREVO_EMAIL ? '✓ cargado' : '✗ NO cargado');
-console.log('🔐 BREVO_API_KEY:', process.env.BREVO_API_KEY ? '✓ (oculto)' : '✗ NO cargado');
+console.log('BREVO_EMAIL:', process.env.BREVO_EMAIL ? '✓ cargado' : '✗ NO cargado');
+console.log('BREVO_API_KEY:', process.env.BREVO_API_KEY ? '✓ (oculto)' : '✗ NO cargado');
 
 if (!process.env.BREVO_API_KEY || !process.env.BREVO_EMAIL) {
   console.error('❌ ERROR: Faltan variables BREVO_API_KEY o BREVO_EMAIL');
