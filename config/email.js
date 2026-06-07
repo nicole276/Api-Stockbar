@@ -1,42 +1,41 @@
 // config/email.js
-const brevo = require('@getbrevo/brevo');
+const nodemailer = require('nodemailer');
 
-console.log('📧 BREVO_EMAIL:', process.env.BREVO_EMAIL ? '✓ cargado' : '✗ NO cargado');
-console.log('🔐 BREVO_API_KEY:', process.env.BREVO_API_KEY ? '✓ (oculto)' : '✗ NO cargado');
+// ── Verificación de variables de entorno ─────────────────────
+console.log('='.repeat(60));
+console.log('CONFIGURACIÓN DE CORREO');
+console.log('='.repeat(60));
+console.log('EMAIL_USER:', process.env.EMAIL_USER ? '✓ cargado' : '✗ NO cargado');
+console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '✓ (oculto)' : '✗ NO cargado');
 
-// Configuración de la API de Brevo
-const apiInstance = new brevo.TransactionalEmailsApi();
-apiInstance.setApiKey(
-  brevo.TransactionalEmailsApiApiKeys.apiKey,
-  process.env.BREVO_API_KEY
-);
-
-// Verificar configuración
-if (process.env.BREVO_API_KEY && process.env.BREVO_EMAIL) {
-  console.log('Brevo configurado correctamente');
-} else {
-  console.log('Error: Faltan variables de entorno de Brevo');
+// ── Validación de credenciales ───────────────────────────────
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  console.error('ERROR: Faltan variables EMAIL_USER o EMAIL_PASS en el entorno');
 }
 
-// Función para enviar correos (compatible con el resto del código)
-const sendMail = async (mailOptions) => {
-  try {
-    const sendSmtpEmail = new brevo.SendSmtpEmail();
-    sendSmtpEmail.subject = mailOptions.subject;
-    sendSmtpEmail.htmlContent = mailOptions.html;
-    sendSmtpEmail.sender = { 
-      email: process.env.BREVO_EMAIL, 
-      name: 'The Bar - Sistema de Gestión' 
-    };
-    sendSmtpEmail.to = [{ email: mailOptions.to }];
-
-    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log('Correo enviado:', response.messageId);
-    return response;
-  } catch (error) {
-    console.error('Error enviando correo:', error.message);
-    throw error;
+// ── Configuración del transporter con SMTP de Brevo ──────────
+const transporter = nodemailer.createTransport({
+  host: 'smtp-relay.brevo.com',
+  port: 587,
+  secure: false, // true para puerto 465, false para otros
+  auth: {
+    user: process.env.EMAIL_USER,   // add257001@smtp-brevo.com
+    pass: process.env.EMAIL_PASS    // Tu clave SMTP de Brevo
+  },
+  tls: {
+    rejectUnauthorized: false // Permite conexión en Render
   }
-};
+});
 
-module.exports = { sendMail };
+// ── Verificar conexión al iniciar ────────────────────────────
+transporter.verify((error, success) => {
+  if (error) {
+    console.log('Error en conexión SMTP:', error.message);
+  } else {
+    console.log('Servidor SMTP de Brevo listo para enviar correos');
+  }
+});
+
+console.log('='.repeat(60));
+
+module.exports = transporter;

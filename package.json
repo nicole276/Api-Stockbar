@@ -16,7 +16,6 @@
   "author": "Tu Nombre",
   "license": "MIT",
   "dependencies": {
-    "@getbrevo/brevo": "^5.0.4",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",

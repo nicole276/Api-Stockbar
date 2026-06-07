@@ -14,7 +14,7 @@ require('dotenv').config();
 
 // ── Configuración modular ────────────────────────────────────
 const pool = require('./config/database');        // Conexión DB centralizada
-const { sendMail } = require('./config/email');    // Email centralizado
+const transporter = require('./config/email');   // Email centralizado
 const { JWT_SECRET } = require('./config/jwt');   // JWT centralizado
 
 // ── Middlewares personalizados ───────────────────────────────
@@ -171,7 +171,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         </div>
       `
     };
-    await sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
     res.json({ success: true, message: 'Código enviado a tu correo' });
   } catch (error) {
     console.error('Error forgot-password:', error);
