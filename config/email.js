@@ -16,8 +16,8 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
 // ── Configuración del transporter con SMTP de Brevo ──────────
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false, // true para puerto 465, false para otros
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,   // add257001@smtp-brevo.com
     pass: process.env.EMAIL_PASS    // Tu clave SMTP de Brevo
