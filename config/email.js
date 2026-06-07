@@ -1,5 +1,4 @@
 // config/email.js
-const Brevo = require('@getbrevo/brevo');
 
 // ── Verificación de variables de entorno ─────────────────────
 console.log('='.repeat(60));
