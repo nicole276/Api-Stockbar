@@ -1,41 +1,51 @@
 // config/email.js
-const nodemailer = require('nodemailer');
+const Brevo = require('@getbrevo/brevo');
 
 // ── Verificación de variables de entorno ─────────────────────
 console.log('='.repeat(60));
-console.log('CONFIGURACIÓN DE CORREO');
+console.log('CONFIGURACIÓN DE CORREO (BREVO)');
 console.log('='.repeat(60));
-console.log('EMAIL_USER:', process.env.EMAIL_USER ? '✓ cargado' : '✗ NO cargado');
-console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '✓ (oculto)' : '✗ NO cargado');
+console.log('BREVO_EMAIL:', process.env.BREVO_EMAIL ? '✓ cargado' : '✗ NO cargado');
+console.log('BREVO_API_KEY:', process.env.BREVO_API_KEY ? '✓ (oculto)' : '✗ NO cargado');
 
 // ── Validación de credenciales ───────────────────────────────
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.error('ERROR: Faltan variables EMAIL_USER o EMAIL_PASS en el entorno');
+if (!process.env.BREVO_API_KEY || !process.env.BREVO_EMAIL) {
+  console.error('ERROR: Faltan variables BREVO_API_KEY o BREVO_EMAIL');
 }
 
-// ── Configuración del transporter con SMTP de Brevo ──────────
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,   // add257001@smtp-brevo.com
-    pass: process.env.EMAIL_PASS    // Tu clave SMTP de Brevo
-  },
-  tls: {
-    rejectUnauthorized: false // Permite conexión en Render
-  }
-});
+// ── Inicializar instancia de la API de Brevo ─────────────────
+const apiInstance = new Brevo.TransactionalEmailsApi();
 
-// ── Verificar conexión al iniciar ────────────────────────────
-transporter.verify((error, success) => {
-  if (error) {
-    console.log('Error en conexión SMTP:', error.message);
-  } else {
-    console.log('Servidor SMTP de Brevo listo para enviar correos');
-  }
-});
+// Configurar la API Key (forma correcta según documentación oficial)
+apiInstance.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
 
+console.log('Cliente Brevo inicializado correctamente');
 console.log('='.repeat(60));
 
-module.exports = transporter;
+// ── Función para enviar correos transaccionales ──────────────
+const sendMail = async (mailOptions) => {
+  try {
+    const email = new Brevo.SendSmtpEmail();
+
+    email.subject = mailOptions.subject;
+    email.htmlContent = mailOptions.html;
+    email.sender = {
+      name: 'The Bar - Sistema de Gestión',
+      email: process.env.BREVO_EMAIL
+    };
+    email.to = [{ email: mailOptions.to }];
+
+    const response = await apiInstance.sendTransacEmail(email);
+    console.log('Correo enviado exitosamente. ID:', response.messageId);
+    return response;
+  } catch (error) {
+    console.error('Error enviando correo:', error.message);
+    if (error.response) {
+      console.error('Detalles:', error.response.body);
+    }
+    throw error;
+  }
+};
+
+// ── Exportar función ─────────────────────────────────────────
+module.exports = { sendMail };
