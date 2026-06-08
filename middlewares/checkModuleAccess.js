@@ -32,7 +32,7 @@ const checkModuleAccess = (moduleName) => async (req, res, next) => {
     
     next();
   } catch (error) {
-    console.error('❌ Error permisos:', error);
+    console.error('Error permisos:', error);
     res.status(500).json({ success: false, message: 'Error al verificar permisos' });
   }
 };

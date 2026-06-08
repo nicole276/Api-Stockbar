@@ -46,9 +46,9 @@ exports.getStats = async (req, res) => {
       `, dateParams)
     ]);
     
-    console.log(`📊 Stats - Período: ${periodo}`);
-    console.log(`📊 Ventas del período: ${ventasPeriodo.rows[0].t}`);
-    console.log(`📊 Compras del período: ${comprasPeriodo.rows[0].t}`);
+    console.log(`Stats - Período: ${periodo}`);
+    console.log(`Ventas del período: ${ventasPeriodo.rows[0].t}`);
+    console.log(`Compras del período: ${comprasPeriodo.rows[0].t}`);
     
     res.json({
       success: true,

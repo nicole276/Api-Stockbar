@@ -1,6 +1,4 @@
-// config/email.js
-
-// ── Verificación de variables de entorno ─────────────────────
+// config/email.js ── Verificación de variables de entorno ─────────────────────
 console.log('='.repeat(60));
 console.log('CONFIGURACIÓN DE CORREO (BREVO)');
 console.log('='.repeat(60));
@@ -8,10 +6,10 @@ console.log('BREVO_EMAIL:', process.env.BREVO_EMAIL ? '✓ cargado' : '✗ NO ca
 console.log('BREVO_API_KEY:', process.env.BREVO_API_KEY ? '✓ (oculto)' : '✗ NO cargado');
 
 if (!process.env.BREVO_API_KEY || !process.env.BREVO_EMAIL) {
-  console.error('❌ ERROR: Faltan variables BREVO_API_KEY o BREVO_EMAIL');
+  console.error('ERROR: Faltan variables BREVO_API_KEY o BREVO_EMAIL');
 }
 
-console.log('✅ Cliente Brevo inicializado correctamente');
+console.log('Cliente Brevo inicializado correctamente');
 console.log('='.repeat(60));
 
 const sendMail = async (mailOptions) => {
@@ -37,16 +35,17 @@ const sendMail = async (mailOptions) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('❌ Error de Brevo:', data);
+      console.error('Error de Brevo:', data);
       throw new Error(data.message || 'Error al enviar el correo');
     }
 
-    console.log('✅ Correo enviado exitosamente. ID:', data.messageId);
+    console.log('Correo enviado exitosamente. ID:', data.messageId);
     return data;
   } catch (error) {
-    console.error('❌ Error enviando correo:', error.message);
+    console.error('Error enviando correo:', error.message);
     throw error;
   }
 };
 
 module.exports = { sendMail };
+
