@@ -53,7 +53,8 @@ exports.createProducto = async (req, res) => {
   try {
     const { nombre, id_categoria, precio_compra, precio_venta, stock = 0, stock_minimo = 0, unidades_por_paquete = 1, estado = 1 } = req.body;
     
-    if (!nombre || !id_categoria || !precio_compra || !precio_venta) {
+    // ✅ Validación corregida: acepta 0 como valor válido
+    if (!nombre || !id_categoria || precio_compra === undefined || precio_compra === null || precio_venta === undefined || precio_venta === null) {
       return res.status(400).json({ success: false, message: 'Nombre, categoría, precio compra y precio venta son requeridos' });
     }
     
