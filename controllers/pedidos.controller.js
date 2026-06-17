@@ -8,7 +8,7 @@ exports.getPedidos = async (req, res) => {
     let query = `
       SELECT v.*, c.nombre as nombre_cliente 
       FROM ventas v LEFT JOIN clientes c ON v.id_cliente = c.id_cliente 
-      WHERE v.estado = 0`;ñ
+      WHERE v.estado = 0`;
     
     const params = []; let n = 1;
     if (search) { query += ` AND c.nombre ILIKE $${n}`; params.push(`%${search}%`); n++; }
