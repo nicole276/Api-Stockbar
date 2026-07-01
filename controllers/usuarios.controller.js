@@ -37,13 +37,12 @@ exports.getUsuarios = async (req, res) => {
     query += ' ORDER BY u.id_usuario DESC';
     
     const result = await pool.query(query, params);
+    
+    // NO convertir estado a string, dejarlo como número (0 o 1)
     res.json({ 
       success: true, 
       count: result.rowCount, 
-      data: result.rows.map(u => ({
-        ...u,
-        estado: u.estado === 1 ? 'activo' : 'inactivo'
-      }))
+      data: result.rows
     });
   } catch (e) {
     console.error('Error listando usuarios:', e);
@@ -68,13 +67,8 @@ exports.getUsuarioById = async (req, res) => {
     }
     
     const user = result.rows[0];
-    res.json({ 
-      success: true, 
-      data: { 
-        ...user, 
-        estado: user.estado === 1 ? 'activo' : 'inactivo' 
-      } 
-    });
+    // NO convertir estado, dejarlo como número
+    res.json({ success: true, data: user });
   } catch (e) {
     console.error('Error obteniendo usuario:', e);
     res.status(500).json({ success: false, message: 'Error obteniendo usuario' });
@@ -84,7 +78,8 @@ exports.getUsuarioById = async (req, res) => {
 // POST /api/usuarios - Crear usuario
 exports.createUsuario = async (req, res) => {
   try {
-    const { nombre_completo, usuario, email, contrasena, id_rol, estado = 1 } = req.body;
+    // CAMBIO: estado por defecto es 0 (inactivo)
+    const { nombre_completo, usuario, email, contrasena, id_rol, estado = 0 } = req.body;
     
     if (!nombre_completo || !usuario || !email || !contrasena || !id_rol) {
       return res.status(400).json({ 
@@ -129,17 +124,18 @@ exports.createUsuario = async (req, res) => {
     // Hashear contraseña
     const hashedPassword = await bcrypt.hash(contrasena, 10);
     
+    // CAMBIO: Forzar estado = 0 (inactivo) al crear
     const result = await pool.query(
       `INSERT INTO usuarios (nombre_completo, usuario, email, contrasena, id_rol, estado) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
-       RETURNING id_usuario, nombre_completo, usuario, email, id_rol, estado`,
-      [nombre_completo, usuario, email, hashedPassword, id_rol, estado]
+       VALUES ($1, $2, $3, $4, $5, 0) 
+       RETURNING *`,
+      [nombre_completo, usuario, email, hashedPassword, id_rol]
     );
     
     res.status(201).json({ 
       success: true, 
-      message: 'Usuario creado exitosamente',
-      data: { ...result.rows[0], estado: result.rows[0].estado === 1 ? 'activo' : 'inactivo' }
+      message: 'Usuario creado exitosamente. Debe ser activado por un administrador.',
+      data: result.rows[0]
     });
   } catch (e) {
     console.error('Error creando usuario:', e);
@@ -212,10 +208,11 @@ exports.updateUsuario = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
     }
     
+    // NO convertir estado, dejarlo como número
     res.json({ 
       success: true, 
       message: 'Usuario actualizado',
-      data: { ...result.rows[0], estado: result.rows[0].estado === 1 ? 'activo' : 'inactivo' }
+      data: result.rows[0]
     });
   } catch (e) {
     console.error('Error actualizando usuario:', e);
@@ -264,10 +261,11 @@ exports.changeEstadoUsuario = async (req, res) => {
       [estado, id]
     );
     
+    // NO convertir estado, dejarlo como número
     res.json({ 
       success: true, 
       message: `Usuario ${estado === 1 ? 'activado' : 'desactivado'}`,
-      data: { ...result.rows[0], estado: result.rows[0].estado === 1 ? 'activo' : 'inactivo' }
+      data: result.rows[0]
     });
   } catch (e) {
     console.error('Error cambiando estado del usuario:', e);
