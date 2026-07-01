@@ -7,7 +7,7 @@ exports.getUsuarios = async (req, res) => {
   try {
     const { search, estado, id_rol } = req.query;
     let query = `
-      SELECT u.*, r.nombre as nombre_rol 
+      SELECT u.*, r.nombre_rol 
       FROM usuarios u 
       LEFT JOIN roles r ON u.id_rol = r.id_rol 
       WHERE 1=1
@@ -48,6 +48,36 @@ exports.getUsuarios = async (req, res) => {
   } catch (e) {
     console.error('Error listando usuarios:', e);
     res.status(500).json({ success: false, message: 'Error listando usuarios' });
+  }
+};
+
+// NUEVA FUNCIÓN: Obtener usuario por ID
+exports.getUsuarioById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT u.*, r.nombre_rol 
+       FROM usuarios u 
+       LEFT JOIN roles r ON u.id_rol = r.id_rol 
+       WHERE u.id_usuario = $1`,
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+    
+    const user = result.rows[0];
+    res.json({ 
+      success: true, 
+      data: { 
+        ...user, 
+        estado: user.estado === 1 ? 'activo' : 'inactivo' 
+      } 
+    });
+  } catch (e) {
+    console.error('Error obteniendo usuario:', e);
+    res.status(500).json({ success: false, message: 'Error obteniendo usuario' });
   }
 };
 
@@ -138,7 +168,7 @@ exports.updateUsuario = async (req, res) => {
       }
     }
     
-    // ✅ VALIDACIÓN: Si se activa el usuario, verificar que su rol esté activo
+    // VALIDACIÓN: Si se activa el usuario, verificar que su rol esté activo
     if (estado === 1 || estado === 'activo') {
       const userRole = await pool.query(
         'SELECT id_rol FROM usuarios WHERE id_usuario = $1',
