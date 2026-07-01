@@ -124,45 +124,51 @@ exports.updateRole = async (req, res) => {
   }
 };
 
-// PATCH /api/roles/:id/estado - Activar/Desactivar rol
-exports.changeRoleStatus = async (req, res) => {
+// PATCH /api/roles/:id/estado - Cambiar estado del rol
+exports.changeEstadoRole = async (req, res) => {
   try {
     const { id } = req.params;
-    const { estado } = req.body;
+    const { estado } = req.body; // 1 = activo, 0 = inactivo
     
-    if (parseInt(id) === 1) 
-      return res.status(400).json({ success: false, message: 'No se puede desactivar el rol administrador' });
-    
-    if (estado === 0 || estado === '0') {
-      const usuarios = await pool.query(
-        'SELECT COUNT(*) as c FROM usuarios WHERE id_rol=$1 AND estado=1', 
+    // Verificar si el rol existe
+    const roleCheck = await pool.query('SELECT * FROM roles WHERE id_role = $1', [id]);
+    if (roleCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Rol no encontrado' });
+    }
+
+    // Si se va a DESACTIVAR el rol, verificar que no tenga usuarios activos
+    if (estado === 0) {
+      const usersWithRole = await pool.query(
+        'SELECT COUNT(*) FROM usuarios WHERE id_role = $1 AND estado = 1',
         [id]
       );
-      if (parseInt(usuarios.rows[0].c) > 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'No se puede desactivar: hay usuarios activos con este rol' 
+
+      const userCount = parseInt(usersWithRole.rows[0].count);
+      
+      if (userCount > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `No se puede desactivar el rol porque tiene ${userCount} usuario(s) activo(s). Desactive primero los usuarios asociados a este rol.`
         });
       }
     }
-    
+
+    // Actualizar el estado del rol
     const result = await pool.query(
-      'UPDATE roles SET estado=$1 WHERE id_rol=$2 RETURNING *', 
+      'UPDATE roles SET estado = $1 WHERE id_role = $2 RETURNING *',
       [estado, id]
     );
-    if (result.rows.length === 0) 
-      return res.status(404).json({ success: false, message: 'Rol no encontrado' });
-    
-    res.json({ 
-      success: true, 
-      message: `Rol ${estado == 1 ? 'activado' : 'desactivado'} exitosamente`, 
-      data: result.rows[0] 
+
+    res.json({
+      success: true,
+      message: `Rol ${estado === 1 ? 'activado' : 'desactivado'} correctamente`,
+      data: result.rows[0]
     });
   } catch (e) {
-    res.status(500).json({ success: false, message: 'Error cambiando estado de rol' });
+    console.error('Error cambiando estado del rol:', e);
+    res.status(500).json({ success: false, message: 'Error cambiando estado del rol' });
   }
 };
-
 // DELETE /api/roles/:id - Eliminar rol
 exports.deleteRole = async (req, res) => {
   try {
