@@ -153,6 +153,16 @@ exports.updateUsuario = async (req, res) => {
     const { id } = req.params;
     const { nombre_completo, usuario, email, id_rol, estado } = req.body;
     
+    // VALIDACIÓN: No permitir desactivar al administrador principal (id=1 o id_rol=1)
+    if (parseInt(id) === 1 || parseInt(id_rol) === 1) {
+      if (estado === 0 || estado === 'inactivo') {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'No se puede desactivar el administrador principal del sistema' 
+        });
+      }
+    }
+    
     // VALIDACIÓN: Si se cambia el rol, verificar que esté activo
     if (id_rol) {
       const roleCheck = await pool.query(
@@ -218,6 +228,14 @@ exports.changeEstadoUsuario = async (req, res) => {
   try {
     const { id } = req.params;
     const { estado } = req.body;
+    
+    // VALIDACIÓN: No permitir desactivar al administrador principal (id=1)
+    if (parseInt(id) === 1 && estado === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No se puede desactivar el administrador principal del sistema' 
+      });
+    }
     
     // VALIDACIÓN: Si se activa el usuario, verificar que su rol esté activo
     if (estado === 1) {
