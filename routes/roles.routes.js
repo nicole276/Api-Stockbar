@@ -14,4 +14,3 @@ router.patch('/:id/estado', authenticateJWT, checkModuleAccess('ROLES'), rolesCo
 router.delete('/:id', authenticateJWT, checkModuleAccess('ROLES'), rolesController.deleteRole);
 
 module.exports = router;
-n
