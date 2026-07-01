@@ -100,6 +100,24 @@ exports.updateRole = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No se puede modificar el rol administrador' });
     
     const { nombre_rol, descripcion, estado, permisos } = req.body;
+    
+    // ✅ NUEVA VALIDACIÓN: Si se va a DESACTIVAR el rol, verificar que no tenga usuarios activos
+    if (estado === 0) {
+      const usersWithRole = await pool.query(
+        'SELECT COUNT(*) FROM usuarios WHERE id_rol = $1 AND estado = 1',
+        [id]
+      );
+      
+      const userCount = parseInt(usersWithRole.rows[0].count);
+      
+      if (userCount > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `No se puede desactivar el rol porque tiene ${userCount} usuario(s) activo(s). Desactive primero los usuarios asociados a este rol.`
+        });
+      }
+    }
+    
     const result = await pool.query(
       'UPDATE roles SET nombre_rol=$1, descripcion=$2, estado=$3 WHERE id_rol=$4 RETURNING *',
       [nombre_rol, descripcion, estado, id]
@@ -131,7 +149,7 @@ exports.changeEstadoRole = async (req, res) => {
     const { estado } = req.body; // 1 = activo, 0 = inactivo
     
     // Verificar si el rol existe
-    const roleCheck = await pool.query('SELECT * FROM roles WHERE id_role = $1', [id]);
+    const roleCheck = await pool.query('SELECT * FROM roles WHERE id_rol = $1', [id]);
     if (roleCheck.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Rol no encontrado' });
     }
@@ -139,7 +157,7 @@ exports.changeEstadoRole = async (req, res) => {
     // Si se va a DESACTIVAR el rol, verificar que no tenga usuarios activos
     if (estado === 0) {
       const usersWithRole = await pool.query(
-        'SELECT COUNT(*) FROM usuarios WHERE id_role = $1 AND estado = 1',
+        'SELECT COUNT(*) FROM usuarios WHERE id_rol = $1 AND estado = 1',
         [id]
       );
 
@@ -155,7 +173,7 @@ exports.changeEstadoRole = async (req, res) => {
 
     // Actualizar el estado del rol
     const result = await pool.query(
-      'UPDATE roles SET estado = $1 WHERE id_role = $2 RETURNING *',
+      'UPDATE roles SET estado = $1 WHERE id_rol = $2 RETURNING *',
       [estado, id]
     );
 
@@ -169,6 +187,7 @@ exports.changeEstadoRole = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error cambiando estado del rol' });
   }
 };
+
 // DELETE /api/roles/:id - Eliminar rol
 exports.deleteRole = async (req, res) => {
   try {
