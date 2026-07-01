@@ -58,31 +58,57 @@ app.post('/api/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Email y contraseña requeridos' });
     }
+    
+    // CONSULTA MODIFICADA: Traer también el estado del rol
     const result = await pool.query(
-      'SELECT * FROM usuarios WHERE LOWER(email) = LOWER($1)',
+      `SELECT u.*, r.estado as rol_estado 
+       FROM usuarios u 
+       JOIN roles r ON u.id_rol = r.id_rol 
+       WHERE LOWER(u.email) = LOWER($1)`,
       [email.trim()]
     );
+    
     if (result.rows.length === 0) {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
     }
+    
     const user = result.rows[0];
+    
+    // Validar si el usuario está activo
     if (user.estado === 0) {
       return res.status(401).json({ success: false, message: 'Tu cuenta está inactiva. Contacta al administrador.' });
     }
+    
+    // NUEVA VALIDACIÓN: Verificar si el rol está activo
+    if (user.rol_estado === 0) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'El rol asignado a tu cuenta está inactivo. Contacta al administrador.' 
+      });
+    }
+    
     let validPassword = false;
     if (user.contrasena.startsWith('$2')) {
       validPassword = await bcrypt.compare(password, user.contrasena);
     } else {
       validPassword = user.contrasena === password;
     }
+    
     if (!validPassword) {
       return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
     }
+    
     const token = jwt.sign(
-      { userId: user.id_usuario, roleId: user.id_rol, userName: user.nombre_completo, userEmail: user.email },
+      { 
+        userId: user.id_usuario, 
+        roleId: user.id_rol, 
+        userName: user.nombre_completo, 
+        userEmail: user.email 
+      },
       JWT_SECRET,
       { expiresIn: '30d' }
     );
+    
     let permissions = [];
     if (user.id_rol === 1) {
       const allPerms = await pool.query('SELECT nombre FROM permisos WHERE estado = 1 ORDER BY nombre');
@@ -97,6 +123,7 @@ app.post('/api/login', async (req, res) => {
       `, [user.id_rol]);
       permissions = permsResult.rows;
     }
+    
     res.json({
       success: true,
       message: 'Login exitoso',
@@ -116,7 +143,6 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ success: false, message: 'Error en el servidor' });
   }
 });
-
 // ============================================================
 //  AUTH: RECUPERAR CONTRASEÑA
 // ============================================================
