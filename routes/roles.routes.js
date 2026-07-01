@@ -10,7 +10,7 @@ router.get('/', authenticateJWT, checkModuleAccess('ROLES'), rolesController.get
 router.get('/:id', authenticateJWT, checkModuleAccess('ROLES'), rolesController.getRoleById);
 router.post('/', authenticateJWT, checkModuleAccess('ROLES'), rolesController.createRole);
 router.put('/:id', authenticateJWT, checkModuleAccess('ROLES'), rolesController.updateRole);
-router.patch('/:id/estado', authenticateJWT, checkModuleAccess('ROLES'), rolesController.changeRoleStatus);
+router.patch('/:id/estado', authenticateJWT, checkModuleAccess('ROLES'), rolesController.changeEstadoRole); 
 router.delete('/:id', authenticateJWT, checkModuleAccess('ROLES'), rolesController.deleteRole);
 
 module.exports = router;
