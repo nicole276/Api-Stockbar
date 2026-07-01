@@ -10,7 +10,7 @@ router.get('/', authenticateJWT, checkModuleAccess('USUARIOS'), usuariosControll
 router.get('/:id', authenticateJWT, checkModuleAccess('USUARIOS'), usuariosController.getUsuarioById);
 router.post('/', authenticateJWT, checkModuleAccess('USUARIOS'), usuariosController.createUsuario);
 router.put('/:id', authenticateJWT, checkModuleAccess('USUARIOS'), usuariosController.updateUsuario);
-router.patch('/:id/estado', authenticateJWT, checkModuleAccess('USUARIOS'), usuariosController.changeUsuarioStatus);
+router.patch('/:id/estado', authenticateJWT, checkModuleAccess('USUARIOS'), usuariosController.changeEstadoUsuario); 
 router.delete('/:id', authenticateJWT, checkModuleAccess('USUARIOS'), usuariosController.deleteUsuario);
 
 module.exports = router;
